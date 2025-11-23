@@ -1,6 +1,1 @@
-ï»¿namespace Business_School.Models
-{
-    public class Event
-    {
-    }
-}
+// Archivo vacío según solicitud.
