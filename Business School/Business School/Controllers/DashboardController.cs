@@ -81,21 +81,33 @@ namespace Business_School.Controllers
         [Authorize(Roles = RoleHelper.DepartmentManager)]
         public async Task<IActionResult> DepartmentManager()
         {
+            // Obtener userId
             var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+
+            // Traer el departamento con todo lo necesario (clubs y estudiantes)
             var department = await _db.Departments
-                .Include(d => d.Clubs).ThenInclude(c => c.Leader)
-                .Include(d => d.Clubs).ThenInclude(c => c.StudentClubs)
-                .Include(d => d.Students).ThenInclude(s => s.ClubMemberships).ThenInclude(cm => cm.Club)
-                .Include(d => d.Events).ThenInclude(e => e.EventAttendances)
+                .Include(d => d.Clubs)
+                    .ThenInclude(c => c.Leader)
+                .Include(d => d.Clubs)
+                    .ThenInclude(c => c.StudentClubs)
+                .Include(d => d.Students)
+                    .ThenInclude(s => s.ClubMemberships)
+                        .ThenInclude(cm => cm.Club)
                 .FirstOrDefaultAsync(d => d.ManagerUserId == userId);
 
             if (department == null)
-            {
                 return View(new DashboardDepartmentManagerVM());
-            }
 
             var now = DateTime.UtcNow;
-            
+
+            // Traer eventos del departamento con asistentes
+            var events = await _db.Events
+                .Where(e => e.DepartmentId == department.Id)
+                .Include(e => e.EventAttendances)
+                .OrderBy(e => e.StartDate)
+                .ToListAsync();
+
+            // Mapear al ViewModel
             var vm = new DashboardDepartmentManagerVM
             {
                 // A. Datos del Departamento
@@ -108,7 +120,7 @@ namespace Business_School.Controllers
                 // B. KPIs
                 TotalClubs = department.Clubs.Count,
                 TotalStudents = department.Students.Count,
-                TotalEvents = department.Events.Count,
+                TotalEvents = events.Count,
 
                 // C. Lista de Clubs
                 Clubs = department.Clubs.Select(c => new DepartmentClubVM
@@ -125,13 +137,15 @@ namespace Business_School.Controllers
                     Id = s.Id,
                     FullName = s.FullName,
                     Email = s.Email ?? string.Empty,
-                    Clubs = s.ClubMemberships.Select(cm => cm.Club?.Name ?? "").Where(n => !string.IsNullOrEmpty(n)).ToList(),
+                    Clubs = s.ClubMemberships.Select(cm => cm.Club?.Name ?? "")
+                                              .Where(n => !string.IsNullOrEmpty(n))
+                                              .ToList(),
                     Points = s.Points,
                     Level = s.Level
                 }).ToList(),
 
                 // E. Eventos del Departamento
-                Events = department.Events.OrderBy(e => e.StartDate).Select(e => new DepartmentEventVM
+                Events = events.Select(e => new DepartmentEventVM
                 {
                     Id = e.Id,
                     Title = e.Title,
