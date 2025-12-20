@@ -50,15 +50,24 @@
                             <span asp-validation-for="StartDate" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="DepartmentId" class="form-label">Departamento</label>
-                            <select asp-for="DepartmentId"
-                                    asp-items="Model.Departments"
-                                    class="form-select">
-                                <option value="">-- Selecciona un departamento --</option>
-                            </select>
-                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
-                        </div>
+                        @if (!User.IsInRole("DepartmentManager"))
+                        {
+                            <div class="mb-3">
+                                <label asp-for="DepartmentId" class="form-label">Departamento</label>
+                                <select asp-for="DepartmentId"
+                                        asp-items="Model.Departments"
+                                        class="form-select">
+                                    <option value="">-- Selecciona un departamento --</option>
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" asp-for="DepartmentId" />
+                        }
+
+                       
 
                         <div class="mb-3">
                             <label class="form-label">Clubs</label>
@@ -107,6 +116,9 @@
                                     Cancelar
                                 </a>
                             }
+
+
+
                         </div>
 
                     </form>

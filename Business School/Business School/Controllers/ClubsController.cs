@@ -74,25 +74,55 @@ namespace Business_School.Controllers
             return View(clubs);
         }
 
+
         [HttpGet]
-        [Authorize(Roles = RoleHelper.Admin + "," + RoleHelper.DepartmentManager + "," + RoleHelper.ClubLeader)] // agregado ClubLeader
         public async Task<IActionResult> Create(int? departmentId, string? returnUrl = null)
         {
             var departmentsList = await _db.Departments.OrderBy(d => d.Name).ToListAsync();
+
             var vm = new ClubCreateVM
             {
                 Departments = new SelectList(departmentsList, "Id", "Name"),
                 DepartmentId = departmentId,
                 ReturnUrl = NormalizeReturnUrl(returnUrl)
             };
+
+            // Si el usuario es DepartmentManager, forzamos su propio departamento
+            // para que no pueda crear club que no sean de su departamento
+            if (User.IsInRole(RoleHelper.DepartmentManager))
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+                var managerDeptId = await _db.Departments
+                    .Where(d => d.ManagerUserId == userId)
+                    .Select(d => d.Id)
+                    .FirstOrDefaultAsync();
+
+                vm.DepartmentId = managerDeptId;
+            }
+
             return View(vm);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = RoleHelper.Admin + "," + RoleHelper.DepartmentManager + "," + RoleHelper.ClubLeader)]
         public async Task<IActionResult> Create(ClubCreateVM vm)
         {
+
+
+            if (User.IsInRole(RoleHelper.DepartmentManager))
+            {
+                var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+//this is what is going to have the form
+                vm.DepartmentId = await _db.Departments
+                    .Where(d => d.ManagerUserId == userId)
+                    .Select(d => d.Id)
+                    .FirstOrDefaultAsync();
+            }
+
+
             // Validaciones manuales adicionales
             if (!vm.DepartmentId.HasValue || vm.DepartmentId <= 0)
             {
@@ -156,7 +186,15 @@ namespace Business_School.Controllers
             if (!string.IsNullOrEmpty(normalizedReturn))
                 return LocalRedirect(normalizedReturn);
 
-            return RedirectToAction("Index");
+            if (User.IsInRole(RoleHelper.DepartmentManager))
+                return RedirectToAction("DepartmentManager", "Dashboard");
+
+            if (User.IsInRole(RoleHelper.ClubLeader))
+            {
+                return RedirectToAction("ClubLeader", "Dashboard");
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // Método privado para rellenar el dropdown de departamentos

@@ -41,19 +41,25 @@
                             <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
-                        <!-- Dropdown de Departamento -->
-                        <div class="form-group mb-4">
-                            <label asp-for="DepartmentId" class="form-label">Departamento</label>
-                            <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="bi bi-building"></i>
-                                </span>
-                                <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
-                                    <option value="">-- Seleccionar Departamento --</option>
-                                </select>
-                            </div>
-                            <span asp-validation-for="DepartmentId" class="text-danger small"></span>
-                        </div>
+                        
+
+
+                            @if (!User.IsInRole("DepartmentManager"))
+                            {
+                                <div class="mb-3">
+                                    <label asp-for="DepartmentId" class="form-label">Departamento</label>
+                                    <select asp-for="DepartmentId"
+                                            asp-items="Model.Departments"
+                                            class="form-select">
+                                        <option value="">-- Selecciona un departamento --</option>
+                                    </select>
+                                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="DepartmentId" />
+                            }
 
                         <!-- Botones -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -69,10 +75,30 @@
                                     <i class="bi bi-arrow-left"></i> Cancelar
                                 </a>
                             }
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> Crear Club
-                            </button>
-                        </div>
+
+                            
+                                @if (!User.IsInRole("DepartmentManager"))
+
+                                {
+
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> Crear Club
+                                    </button>
+
+                                }
+                                else
+                                {
+
+<form asp-controller="Dashboard" asp-action="DepartmentManager" method="get" class="d-inline">
+    <input type="hidden" name="returnUrl" value="@Url.Action("DepartmentManager", "Dashboard")" />
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle"></i> Crear Club
+    </button>
+</form>
+
+
+                                }
+                            </div>
                     </form>
                 </div>
             </div>

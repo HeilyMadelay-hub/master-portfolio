@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Business_School.Controllers
 {
@@ -129,15 +130,46 @@ namespace Business_School.Controllers
             return View(vm);
         }
 
+        /*
+         * When we create an event from the department  dashboard 
+         * and you selected edit an event the department selector should not be visible.
+         */
+
         [Authorize(Roles = RoleHelper.Admin + "," + RoleHelper.DepartmentManager + "," + RoleHelper.ClubLeader)]
         public async Task<IActionResult> Create(string? returnUrl = null)
         {
             var vm = new EventFormVM
             {
-                Departments = await _db.Departments.OrderBy(d => d.Name).Select(d => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = d.Id.ToString(), Text = d.Name }).ToListAsync(),
-                Clubs = await _db.Clubs.OrderBy(c => c.Name).Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToListAsync()
+                Departments = await _db.Departments.
+                OrderBy(d => d.Name).
+                Select(d => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = d.Id.ToString(), Text = d.Name }).
+                ToListAsync(),
+
+                Clubs = await _db.Clubs.OrderBy(c => c.Name).
+                Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem 
+                { Value = c.Id.ToString(), Text = c.Name }).ToListAsync()
             };
+
+
+            //if the role is departmentmanager , add the department to the vm  so it will appear automatically in the form.
+
+            if (User.IsInRole(RoleHelper.DepartmentManager))
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+                var departmentId = await _db.Departments
+                    .Where(d => d.ManagerUserId == userId)
+                    .Select(d => d.Id)
+                    .FirstOrDefaultAsync();
+
+                vm.DepartmentId = departmentId;
+            }
+
+
+
             ViewData["ReturnUrl"] = NormalizeReturnUrl(returnUrl);
+
+
             return View(vm);
         }
 
@@ -146,6 +178,19 @@ namespace Business_School.Controllers
         [Authorize(Roles = RoleHelper.Admin + "," + RoleHelper.DepartmentManager + "," + RoleHelper.ClubLeader)]
         public async Task<IActionResult> Create(EventFormVM model, string? returnUrl = null)
         {
+            // If the user is a DepartmentManager, force the DepartmentId to their own department in this way can not create events outside of this appartment 
+
+            if (User.IsInRole(RoleHelper.DepartmentManager))
+            {
+                var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+
+                model.DepartmentId = await _db.Departments
+                    .Where(d => d.ManagerUserId == userId)
+                    .Select(d => d.Id)
+                    .FirstOrDefaultAsync();
+            }
+
+
             if (!ModelState.IsValid)
             {
                 model.Departments = await _db.Departments.OrderBy(d => d.Name).Select(d => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = d.Id.ToString(), Text = d.Name }).ToListAsync();
@@ -176,6 +221,14 @@ namespace Business_School.Controllers
             if (!string.IsNullOrEmpty(normalizedReturn))
                 return LocalRedirect(normalizedReturn);
 
+            if (User.IsInRole(RoleHelper.DepartmentManager))
+                return RedirectToAction("DepartmentManager", "Dashboard");
+
+            if (User.IsInRole(RoleHelper.ClubLeader))
+            {
+                return RedirectToAction("ClubLeader", "Dashboard");
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -183,8 +236,13 @@ namespace Business_School.Controllers
         public async Task<IActionResult> Edit(int? id, string? returnUrl = null)
         {
             if (id == null) return NotFound();
+
+            //Here you would only load the events of the related department 
+
             var ev = await _db.Events.Include(e => e.EventClubs).FirstOrDefaultAsync(e => e.Id == id);
+
             if (ev == null) return NotFound();
+
             var vm = new EventFormVM
             {
                 Id = ev.Id,
@@ -197,6 +255,8 @@ namespace Business_School.Controllers
                 Departments = await _db.Departments.OrderBy(d => d.Name).Select(d => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = d.Id.ToString(), Text = d.Name }).ToListAsync(),
                 Clubs = await _db.Clubs.OrderBy(c => c.Name).Select(c => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToListAsync()
             };
+
+
             ViewData["ReturnUrl"] = NormalizeReturnUrl(returnUrl);
             return View(vm);
         }
@@ -234,7 +294,19 @@ namespace Business_School.Controllers
             if (!string.IsNullOrEmpty(normalizedReturn))
                 return LocalRedirect(normalizedReturn);
 
-            return RedirectToAction(nameof(Details), new { id = ev.Id });
+            // Fallback por rol
+            if (User.IsInRole(RoleHelper.DepartmentManager))
+            {
+                return RedirectToAction("DepartmentManager", "Dashboard");
+            }
+
+            if (User.IsInRole(RoleHelper.ClubLeader))
+            {
+                return RedirectToAction("ClubLeader", "Dashboard");
+            }
+
+            // Admin u otros
+            return RedirectToAction("Index");
         }
 
         [Authorize(Roles = RoleHelper.Admin + "," + RoleHelper.DepartmentManager + "," + RoleHelper.ClubLeader)]

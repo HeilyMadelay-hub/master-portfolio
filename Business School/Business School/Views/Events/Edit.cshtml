@@ -34,13 +34,23 @@
                 <input type="datetime-local" asp-for="StartDate" class="form-control" value="@startDateValue" required />
                 <span asp-validation-for="StartDate" class="text-danger"></span>
             </div>
-            <div class="mb-3">
-                <label asp-for="DepartmentId" class="form-label">Departamento</label>
-                <select asp-for="DepartmentId" asp-items="Model.Departments" class="form-select">
-                    <option value="">-- Selecciona un departamento --</option>
-                </select>
-                <span asp-validation-for="DepartmentId" class="text-danger"></span>
-            </div>
+                @if (User.IsInRole("DepartmentManager"))
+                {
+                    <input type="hidden" asp-for="DepartmentId" />
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <label asp-for="DepartmentId" class="form-label">Departamento</label>
+                        <select asp-for="DepartmentId"
+                                asp-items="Model.Departments"
+                                class="form-select">
+                            <option value="">-- Selecciona un departamento --</option>
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                    </div>
+                }
+
         </div>
     </div>
 
@@ -80,19 +90,28 @@
             </div>
         </div>
     </div>
+        <!-- Botones -->
+        <div class="d-flex gap-2 mb-5">
+            <button type="submit" class="btn btn-primary btn-lg">Guardar Cambios</button>
 
-    <!-- Botones -->
-    <div class="d-flex gap-2 mb-5">
-        <button type="submit" class="btn btn-primary btn-lg">Guardar Cambios</button>
-        @if (!string.IsNullOrEmpty(returnUrl))
-        {
-            <a href="@returnUrl" class="btn btn-secondary btn-lg">Cancelar</a>
-        }
-        else
-        {
-            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary btn-lg">Cancelar</a>
-        }
-    </div>
+            @if (!string.IsNullOrEmpty(returnUrl))
+            {
+                <a href="@returnUrl" class="btn btn-secondary btn-lg">Cancelar</a>
+            }
+            else if (User.IsInRole("DepartmentManager"))
+            {
+                <a asp-controller="Dashboard"
+                   asp-action="DepartmentManager"
+                   class="btn btn-secondary btn-lg">
+                    Cancelar
+                </a>
+            }
+            else
+            {
+                <a asp-action="Index" class="btn btn-secondary btn-lg">Cancelar</a>
+            }
+        </div>
+
 </form>
 </div>
 @section Scripts {

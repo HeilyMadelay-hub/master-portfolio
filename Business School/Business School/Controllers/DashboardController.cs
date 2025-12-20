@@ -102,10 +102,13 @@ namespace Business_School.Controllers
 
             // Traer eventos del departamento con asistentes
             var events = await _db.Events
-                .Where(e => e.DepartmentId == department.Id)
-                .Include(e => e.EventAttendances)
-                .OrderBy(e => e.StartDate)
-                .ToListAsync();
+              .Where(e => e.DepartmentId == department.Id)
+              .Include(e => e.EventAttendances)
+              .Include(e => e.Department)  // Incluir departamento
+              .Include(e => e.EventClubs)  // Incluir relación con clubs
+                  .ThenInclude(ec => ec.Club)  // Incluir datos del club
+              .OrderBy(e => e.StartDate)
+              .ToListAsync();
 
             // Mapear al ViewModel
             var vm = new DashboardDepartmentManagerVM
@@ -152,7 +155,9 @@ namespace Business_School.Controllers
                     StartDate = e.StartDate,
                     Capacity = e.Capacity,
                     RegisteredCount = e.EventAttendances.Count,
-                    Status = GetEventStatus(e, now)
+                    Status = GetEventStatus(e, now),
+                    DepartmentName = e.Department?.Name ?? "Sin departamento",
+                    ClubNames = e.EventClubs.Select(ec => ec.Club?.Name ?? "").Where(n => !string.IsNullOrEmpty(n)).ToList()
                 }).ToList()
             };
 
@@ -396,3 +401,15 @@ namespace Business_School.Controllers
         }
     }
 }
+
+
+/*
+ 
+Error conclusion and how we solved it
+
+The main problem was the redirection which was generating an incorrect url
+we fixed it by correcting the order of the controller and the action.
+
+ 
+
+ */
