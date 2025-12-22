@@ -11,6 +11,22 @@
     bool isMember = ViewData["IsMember"] != null && (bool)ViewData["IsMember"];
     // Use relative URL for returnUrl so IsLocalUrl works everywhere
     var clubDetailsUrl = Url.Action("Details", "Clubs", new { id = Model.Id });
+    string returnUrl;
+
+    if (ViewData["ReturnUrl"] is string ru && !string.IsNullOrEmpty(ru))
+    {
+        returnUrl = ru;
+    }
+    else if (User.IsInRole("DepartmentManager"))
+    {
+        returnUrl = Url.Action("DepartmentManager", "Dashboard");
+    }
+    else
+    {
+        returnUrl = Url.Action("Index", "Clubs");
+    }
+   
+
 }
 
 <div class="container mt-4">
@@ -158,9 +174,9 @@
             </form>
         }
 
-        @if (!User.IsInRole("Admin"))
+        @if (!User.IsInRole("Admin") || isAdminOrManager)
         {
-            @if (isLeader || isAdminOrManager)
+            @if (isLeader )
             {
                 <a asp-action="Edit" asp-route-id="@Model.Id" asp-route-returnUrl="@Url.Action("Details", "Clubs", new { id = Model.Id })" class="btn btn-primary">
                     <i class="bi bi-pencil"></i> Editar Club
@@ -170,37 +186,4 @@
     </div>
 
 </div>
-
-@section Scripts {
-    <script>
-        // En esta página, si el usuario pulsa Atrás desde cualquier instancia de Details,
-        // saltar directamente a Clubs/Index (sin pasar por Delete/Details previos)
-        (function () {
-        const indexUrl = '@Url.Action("Index", "Clubs")';
-        try {
-        //1) Redirección inmediata si llegamos aquí por back/forward cache (bfcache)
-        window.addEventListener('pageshow', function (evt) {
-        try {
-        const navEntries = (performance.getEntriesByType && performance.getEntriesByType('navigation')) || [];
-        const navType = navEntries[0] && navEntries[0].type;
-        const isBFCache = evt && (evt.persisted === true);
-        const isHistoryNav = (navType === 'back_forward') || (performance.navigation && performance.navigation.type ===2);
-        if (isBFCache || isHistoryNav) {
-        // Reemplazar para no crear nueva entrada
-        location.replace(indexUrl);
-        }
-        } catch { /* noop */ }
-        });
-
-        //2) Guard estándar: capturar el primer Back en esta instancia
-        history.pushState({ __clubsDetailsGuard: true }, '', location.href);
-        history.pushState({ __clubsDetailsGuard: true }, '', location.href);
-        window.addEventListener('popstate', function (evt) {
-        if (evt && evt.state && evt.state.__clubsDetailsGuard) {
-        location.replace(indexUrl);
-        }
-        }, { once: true });
-        } catch { /* noop */ }
-        })();
-    </script>
-}
+ 

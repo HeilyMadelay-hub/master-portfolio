@@ -76,9 +76,7 @@ namespace Business_School.Controllers
             return null;
         }
 
-        // ========================================
-        // CRUD - Admin, DepartmentManager, ClubLeader
-        // ========================================
+       
         public async Task<IActionResult> Index()
         {
             var events = await _db.Events

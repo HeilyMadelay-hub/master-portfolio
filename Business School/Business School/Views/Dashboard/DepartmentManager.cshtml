@@ -208,10 +208,17 @@
                                             <span class="badge bg-info bg-opacity-75 px-3 py-2">@club.StudentCount</span>
                                         </td>
                                         <td class="text-center pe-4">
-                                            <a href="@Url.Action("Details", "Clubs", new { id = club.Id })"
+                                           <a href="@Url.Action(
+                                                    "Details",
+                                                    "Clubs",
+                                                    new {
+                                                        id = club.Id,
+                                                        returnUrl = Url.Action("DepartmentManager", "Dashboard")
+                                                    })"
                                                class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-gear me-1"></i> Gestionar
+                                                <i class="bi bi-gear me-1"></i> Ver Detalles
                                             </a>
+
                                         </td>
                                     </tr>
                                 }

@@ -366,9 +366,9 @@ namespace Business_School.Controllers
 
         }
 
-
+        //url patron
         [HttpGet]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, string? returnUrl = null)
         {
             if (id == null)
                 return NotFound();
@@ -402,9 +402,17 @@ namespace Business_School.Controllers
                     .Any(sc => sc.UserStudentId == currentUser.Id);
                 }
             }
+            string? normalizedReturn = null;
 
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                normalizedReturn = returnUrl;
+            }
+
+            ViewData["ReturnUrl"] = normalizedReturn;
 
             return View(club);
+
 
 
         }
