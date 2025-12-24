@@ -54,7 +54,7 @@ From full-stack web applications to microservices, AI integration, and cloud dep
 - Docker containerization
 - Enterprise security patterns
 
-[**→ View Project**](./business-school-aspnet-core-mvc-identity)
+[**→ View Project**](./Business_School)
 
 ---
 
