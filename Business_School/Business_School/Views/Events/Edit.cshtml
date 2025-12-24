@@ -1,0 +1,318 @@
+@model Business_School.ViewModels.Event.EventFormVM
+@{
+    ViewData["Title"] = "Editar Evento";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+    var startDateValue = Model.StartDate != DateTime.MinValue
+        ? Model.StartDate.ToString("yyyy-MM-ddTHH:mm")
+        : "";
+}
+<div class="container mt-4">
+<h2 class="mb-4">Editar Evento</h2>
+
+<form asp-action="Edit" method="post" class="needs-validation" novalidate>
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+    <!-- Panel de Información Básica -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            Información del Evento
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" placeholder="Título del evento" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3" placeholder="Descripción del evento"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="StartDate" class="form-label"></label>
+                <input type="datetime-local" asp-for="StartDate" class="form-control" value="@startDateValue" required />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+                @if (User.IsInRole("DepartmentManager"))
+                {
+                    <input type="hidden" asp-for="DepartmentId" />
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <label asp-for="DepartmentId" class="form-label">Departamento</label>
+                        <select asp-for="DepartmentId"
+                                asp-items="Model.Departments"
+                                class="form-select">
+                            <option value="">-- Selecciona un departamento --</option>
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                    </div>
+                }
+
+        </div>
+    </div>
+
+    <!-- Panel de Clubs -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-secondary text-white" data-bs-toggle="collapse" data-bs-target="#clubsPanel" style="cursor:pointer;">
+            Clubs <small class="text-light">(clic para expandir/colapsar)</small>
+        </div>
+        <div class="collapse show" id="clubsPanel">
+            <div class="card-body">
+                <div class="row row-cols-1 row-cols-md-2 g-2">
+                    @foreach (var club in Model.Clubs)
+                    {
+                        <div class="col">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="@club.Value" name="SelectedClubIds"
+                                       id="club_@club.Value" @(Model.SelectedClubIds.Contains(int.Parse(club.Value)) ? "checked" : "") />
+                                <label class="form-check-label" for="club_@club.Value">@club.Text</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Capacidad -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-info text-white">
+            Aforo del Evento
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label asp-for="MaxCapacity" class="form-label">Aforo Máximo (opcional)</label>
+                <input asp-for="MaxCapacity" class="form-control" placeholder="Ej. 50" />
+                <span asp-validation-for="MaxCapacity" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+        <!-- Botones -->
+        <div class="d-flex gap-2 mb-5">
+            <button type="submit" class="btn btn-primary btn-lg">Guardar Cambios</button>
+
+            @if (!string.IsNullOrEmpty(returnUrl))
+            {
+                <a href="@returnUrl" class="btn btn-secondary btn-lg">Cancelar</a>
+            }
+            else if (User.IsInRole("DepartmentManager"))
+            {
+                <a asp-controller="Dashboard"
+                   asp-action="DepartmentManager"
+                   class="btn btn-secondary btn-lg">
+                    Cancelar
+                </a>
+            }
+            else
+            {
+                <a asp-action="Index" class="btn btn-secondary btn-lg">Cancelar</a>
+            }
+        </div>
+
+</form>
+</div>
+
+@section Scripts {
+    <script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector('form');
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'formAlert';
+    alertDiv.className = 'alert alert-danger d-none mb-4';
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><span id="alertMessage"></span>';
+    
+    // Insertar alert al inicio del formulario
+    const firstElement = form.querySelector('.mb-3');
+    if (firstElement) {
+        form.insertBefore(alertDiv, firstElement);
+    }
+    
+    function showError(elementId, message) {
+        const input = document.querySelector('#' + elementId);
+        if (input) {
+            const errorSpan = input.parentElement.querySelector('.text-danger');
+            if (errorSpan) {
+                errorSpan.textContent = message;
+                errorSpan.style.display = 'block';
+            }
+            input.classList.add('is-invalid');
+        }
+    }
+    
+    function clearErrors() {
+        document.querySelectorAll('.text-danger').forEach(span => {
+            span.textContent = '';
+            span.style.display = 'none';
+        });
+        document.querySelectorAll('.is-invalid').forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+        alertDiv.classList.add('d-none');
+    }
+    
+    function validateForm() {
+        let isValid = true;
+        clearErrors();
+        
+        // Validar Título
+        const title = document.querySelector('#Title');
+        if (title && !title.value.trim()) {
+            showError('Title', 'El título del evento es obligatorio.');
+            isValid = false;
+        } else if (title && title.value.trim().length < 3) {
+            showError('Title', 'El título debe tener al menos 3 caracteres.');
+            isValid = false;
+        }
+        
+        // Validar Descripción
+        const description = document.querySelector('#Description');
+        if (description && !description.value.trim()) {
+            showError('Description', 'La descripción del evento es obligatoria.');
+            isValid = false;
+        } else if (description && description.value.trim().length < 10) {
+            showError('Description', 'La descripción debe tener al menos 10 caracteres.');
+            isValid = false;
+        }
+        
+        // Validar Fecha
+        const startDate = document.querySelector('#StartDate');
+        if (startDate && !startDate.value) {
+            showError('StartDate', 'La fecha del evento es obligatoria.');
+            isValid = false;
+        } else if (startDate && startDate.value) {
+            const selectedDate = new Date(startDate.value);
+            const now = new Date();
+            if (selectedDate < now) {
+                showError('StartDate', 'La fecha del evento debe ser futura.');
+                isValid = false;
+            }
+        }
+        
+        // Validar Departamento (solo si está visible y no es hidden)
+        const department = document.querySelector('#DepartmentId');
+        if (department && department.type !== 'hidden' && !department.value) {
+            showError('DepartmentId', 'Debes seleccionar un departamento.');
+            isValid = false;
+        }
+        
+        // Validar Clubs (al menos uno seleccionado)
+        const clubCheckboxes = document.querySelectorAll('input[name="SelectedClubIds"]:not([type="hidden"])');
+        if (clubCheckboxes.length > 0) {
+            const anyChecked = Array.from(clubCheckboxes).some(cb => cb.checked);
+            if (!anyChecked) {
+                const clubsLabel = document.querySelector('label[class*="form-label"]');
+                if (clubsLabel && clubsLabel.textContent.includes('Club')) {
+                    const errorSpan = clubsLabel.parentElement.querySelector('.text-danger') || 
+                                    document.createElement('span');
+                    errorSpan.className = 'text-danger small d-block mt-2';
+                    errorSpan.textContent = 'Debes seleccionar al menos un club.';
+                    if (!clubsLabel.parentElement.querySelector('.text-danger')) {
+                        clubsLabel.parentElement.appendChild(errorSpan);
+                    }
+                    isValid = false;
+                }
+            }
+        }
+        
+        // Validar Capacidad (si tiene valor, debe ser positivo)
+        const capacity = document.querySelector('#MaxCapacity');
+        if (capacity && capacity.value.trim()) {
+            const capacityValue = parseInt(capacity.value);
+            if (isNaN(capacityValue) || capacityValue <= 0) {
+                showError('MaxCapacity', 'La capacidad debe ser un número positivo.');
+                isValid = false;
+            } else if (capacityValue > 10000) {
+                showError('MaxCapacity', 'La capacidad no puede exceder 10,000 personas.');
+                isValid = false;
+            }
+        }
+        
+        // Mostrar alert general si hay errores
+        if (!isValid) {
+            alertDiv.classList.remove('d-none');
+            document.getElementById('alertMessage').textContent = 
+                'Por favor, corrige los errores marcados en el formulario.';
+            
+            // Scroll al primer error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        }
+        
+        return isValid;
+    }
+    
+    // Validación al enviar el formulario
+    form.addEventListener('submit', function (e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
+    
+    // Validación en tiempo real
+    const inputs = form.querySelectorAll('input:not([type="hidden"]), textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function () {
+            // Validar solo si el campo tiene valor o es obligatorio
+            if (this.value.trim() || this.hasAttribute('required')) {
+                const errorSpan = this.parentElement.querySelector('.text-danger');
+                if (errorSpan) {
+                    errorSpan.textContent = '';
+                    errorSpan.style.display = 'none';
+                }
+                this.classList.remove('is-invalid');
+            }
+        });
+        
+        input.addEventListener('input', function () {
+            // Limpiar error mientras el usuario escribe
+            const errorSpan = this.parentElement.querySelector('.text-danger');
+            if (errorSpan && this.value.trim()) {
+                errorSpan.textContent = '';
+                errorSpan.style.display = 'none';
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+    
+    // Validación especial para checkboxes de clubs
+    const clubCheckboxes = document.querySelectorAll('input[name="SelectedClubIds"]:not([type="hidden"])');
+    clubCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const anyChecked = Array.from(clubCheckboxes).some(cb => cb.checked);
+            const clubsError = document.querySelector('.text-danger[class*="d-block"]');
+            if (anyChecked && clubsError) {
+                clubsError.remove();
+            }
+        });
+    });
+    
+    // Validación de fecha en tiempo real
+    const startDate = document.querySelector('#StartDate');
+    if (startDate) {
+        startDate.addEventListener('change', function () {
+            const selectedDate = new Date(this.value);
+            const now = new Date();
+            const errorSpan = this.parentElement.querySelector('.text-danger');
+            
+            if (selectedDate < now && errorSpan) {
+                errorSpan.textContent = 'La fecha del evento debe ser futura.';
+                errorSpan.style.display = 'block';
+                this.classList.add('is-invalid');
+            } else if (errorSpan) {
+                errorSpan.textContent = '';
+                errorSpan.style.display = 'none';
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+});
+    </script>
+}

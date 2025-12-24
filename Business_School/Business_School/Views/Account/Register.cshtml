@@ -1,0 +1,290 @@
+@model Business_School.Models.ViewModels.RegisterVM
+@{
+    ViewData["Title"] = "Registro";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-person-plus"></i> Crear cuenta
+                </h2>
+
+                <form asp-action="Register" method="post" id="registerForm" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <div class="form-group mb-3">
+                        <label asp-for="FirstName" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input asp-for="FirstName" class="form-control" placeholder="Tu nombre" required />
+                        </div>
+                        <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        <div class="invalid-feedback">Por favor ingresa tu nombre</div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="LastName" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person-badge"></i>
+                            </span>
+                            <input asp-for="LastName" class="form-control" placeholder="Tu apellido" required />
+                        </div>
+                        <span asp-validation-for="LastName" class="text-danger small"></span>
+                        <div class="invalid-feedback">Por favor ingresa tu apellido</div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-envelope"></i>
+                            </span>
+                            <input asp-for="Email" class="form-control" type="email"
+                                   placeholder="tu.email@escueladenegocios.com"
+                                   autocomplete="username" required />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                        <div class="invalid-feedback">Por favor ingresa un correo válido</div>
+                        <div class="form-text">
+                            Usa tu correo institucional
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input asp-for="Password" class="form-control" type="password"
+                                   placeholder="Crea una contraseña segura"
+                                   autocomplete="new-password" required minlength="6" />
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                        <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres</div>
+                        <div class="form-text">
+                            Mínimo 6 caracteres
+                        </div>
+                        <div class="mt-2">
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="passwordStrengthText" class="form-text"></small>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock-fill"></i>
+                            </span>
+                            <input asp-for="ConfirmPassword" class="form-control" type="password"
+                                   placeholder="Reingresa tu contraseña"
+                                   autocomplete="new-password" required />
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                <i class="bi bi-eye" id="toggleConfirmPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        <div class="invalid-feedback">Las contraseñas no coinciden</div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Level" class="form-label"></label>
+                        <select asp-for="Level" class="form-select" asp-items="Html.GetEnumSelectList<StudentLevel>()" required>
+                            <option value="">Selecciona el nivel</option>
+                        </select>
+                        <span asp-validation-for="Level" class="text-danger small"></span>
+                        <div class="invalid-feedback">Por favor selecciona un nivel</div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="DepartmentId" class="form-label"></label>
+                        <select asp-for="DepartmentId" class="form-select" asp-items="Model.DepartmentList" required>
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger small"></span>
+                        <div class="invalid-feedback">Por favor selecciona un departamento</div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="TermsAccepted" class="form-check-input" required />
+                        <label asp-for="TermsAccepted" class="form-check-label"></label>
+                        <span asp-validation-for="TermsAccepted" class="text-danger small d-block"></span>
+                        <div class="invalid-feedback">Debes aceptar los términos y condiciones</div>
+                    </div>
+
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Nota:</strong> Después de registrarte tendrás el rol de usuario, un administrador actualizará tu perfil
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-person-check"></i> Crear cuenta
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="mb-0">
+                            ¿Ya tienes una cuenta?
+                            <a asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">
+                                Inicia sesión aquí
+                            </a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+    (function() {
+        'use strict';
+
+        const form = document.getElementById('registerForm');
+        const passwordInput = document.getElementById('Password');
+        const confirmPasswordInput = document.getElementById('ConfirmPassword');
+        const togglePassword = document.getElementById('togglePassword');
+        const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+        const toggleConfirmPasswordIcon = document.getElementById('toggleConfirmPasswordIcon');
+
+        if (togglePassword) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                togglePasswordIcon.classList.toggle('bi-eye');
+                togglePasswordIcon.classList.toggle('bi-eye-slash');
+            });
+        }
+
+        if (toggleConfirmPassword) {
+            toggleConfirmPassword.addEventListener('click', function() {
+                const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPasswordInput.setAttribute('type', type);
+                toggleConfirmPasswordIcon.classList.toggle('bi-eye');
+                toggleConfirmPasswordIcon.classList.toggle('bi-eye-slash');
+            });
+        }
+
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                const strengthBar = document.getElementById('passwordStrength');
+                const strengthText = document.getElementById('passwordStrengthText');
+                
+                let strength = 0;
+                let text = '';
+                let color = '';
+
+                        // Longitud
+        if (password.length >= 6) strength += 25;
+        if (password.length >= 8) strength += 25;
+
+        // Mayúsculas y minúsculas
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+
+        // Números y caracteres especiales (independientes)
+        if (/\d/.test(password)) strength += 12.5;          // Números
+        if (/[^A-Za-z0-9]/.test(password)) strength += 12.5; // Cualquier caracter no alfanumérico
+                if (strength === 0) {
+                    text = '';
+                    color = '';
+                } else if (strength <= 25) {
+                    text = 'Débil';
+                    color = 'bg-danger';
+                } else if (strength <= 50) {
+                    text = 'Regular';
+                    color = 'bg-warning';
+                } else if (strength <= 75) {
+                    text = 'Buena';
+                    color = 'bg-info';
+                } else {
+                    text = 'Fuerte';
+                    color = 'bg-success';
+                }
+
+                strengthBar.style.width = strength + '%';
+                strengthBar.className = 'progress-bar ' + color;
+                strengthText.textContent = text;
+            });
+        }
+
+        if (confirmPasswordInput) {
+            confirmPasswordInput.addEventListener('input', function() {
+                if (this.value !== passwordInput.value) {
+                    this.setCustomValidity('Las contraseñas no coinciden');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+
+            passwordInput.addEventListener('input', function() {
+                if (confirmPasswordInput.value !== '') {
+                    if (confirmPasswordInput.value !== this.value) {
+                        confirmPasswordInput.setCustomValidity('Las contraseñas no coinciden');
+                    } else {
+                        confirmPasswordInput.setCustomValidity('');
+                    }
+                }
+            });
+        }
+
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(function(input) {
+            input.addEventListener('blur', function() {
+                if (!this.checkValidity()) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                }
+            });
+
+            input.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid') || this.classList.contains('is-valid')) {
+                    if (!this.checkValidity()) {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                }
+            });
+        });
+
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            form.classList.add('was-validated');
+
+            const firstInvalid = form.querySelector(':invalid');
+            if (firstInvalid) {
+                firstInvalid.focus();
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, false);
+    })();
+    </script>
+}

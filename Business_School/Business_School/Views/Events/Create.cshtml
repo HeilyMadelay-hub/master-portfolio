@@ -1,0 +1,386 @@
+@model Business_School.ViewModels.Event.EventFormVM
+
+@{
+    ViewData["Title"] = "Crear Evento";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+    var defaultStartDate = DateTime.Now
+        .AddDays(1)
+        .Date
+        .AddHours(10)
+        .ToString("yyyy-MM-ddTHH:mm");
+
+    var isClubLeader = User.IsInRole("ClubLeader");
+    var isDepartmentManager = User.IsInRole("DepartmentManager");
+    var hasPreselectedClub = Model.SelectedClubIds != null && Model.SelectedClubIds.Any();
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-calendar-plus"></i> Crear Evento
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+
+                        @if (!string.IsNullOrWhiteSpace(returnUrl))
+                        {
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                        }
+
+                        <!-- Título -->
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">
+                                <i class="bi bi-card-text"></i> Título
+                            </label>
+                            <input asp-for="Title" class="form-control" placeholder="Ej: Workshop de Marketing Digital" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">
+                                <i class="bi bi-file-text"></i> Descripción
+                            </label>
+                            <textarea asp-for="Description"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Describe el evento..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Fecha -->
+                        <div class="mb-3">
+                            <label asp-for="StartDate" class="form-label">
+                                <i class="bi bi-calendar-event"></i> Fecha y Hora
+                            </label>
+                            <input asp-for="StartDate"
+                                   type="datetime-local"
+                                   class="form-control"
+                                   value="@defaultStartDate" />
+                            <span asp-validation-for="StartDate" class="text-danger"></span>
+                        </div>
+
+                        <!-- Departamento -->
+                        @if (!isDepartmentManager && !isClubLeader && !hasPreselectedClub)
+                        {
+                            <div class="mb-3">
+                                <label asp-for="DepartmentId" class="form-label">
+                                    <i class="bi bi-building"></i> Departamento
+                                </label>
+                                <select asp-for="DepartmentId"
+                                        asp-items="Model.Departments"
+                                        class="form-select">
+                                    <option value="">-- Selecciona un departamento --</option>
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" asp-for="DepartmentId" />
+                            @if (Model.DepartmentId > 0)
+                            {
+                                var deptName = Model.Departments?.FirstOrDefault(d => d.Value == Model.DepartmentId.ToString())?.Text;
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Departamento:</strong> @deptName
+                                </div>
+                            }
+                        }
+
+                        <!-- Clubs -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-flag"></i> Clubs Asociados
+                            </label>
+
+                            @if (isClubLeader || hasPreselectedClub)
+                            {
+                                <!-- ClubLeader: Solo su club, no puede cambiar -->
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle"></i>
+                                    <strong>Club seleccionado:</strong>
+                                    @string.Join(", ", Model.Clubs.Where(c => Model.SelectedClubIds.Contains(int.Parse(c.Value))).Select(c => c.Text))
+                                </div>
+
+                                @foreach (var clubId in Model.SelectedClubIds)
+                                {
+                                    <input type="hidden" name="SelectedClubIds" value="@clubId" />
+                                }
+                            }
+                            else
+                            {
+                                <!-- Admin/DeptManager: Pueden seleccionar múltiples clubs -->
+                                <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                                    @if (Model.Clubs.Any())
+                                    {
+                                        @foreach (var club in Model.Clubs)
+                                        {
+                                            <div class="form-check">
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       name="SelectedClubIds"
+                                                       value="@club.Value"
+                                                       id="club_@club.Value"
+                                                       @(Model.SelectedClubIds?.Contains(int.Parse(club.Value)) == true ? "checked" : "") />
+                                                <label class="form-check-label" for="club_@club.Value">
+                                                    @club.Text
+                                                </label>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0">No hay clubs disponibles.</p>
+                                    }
+                                </div>
+                                <small class="form-text text-muted">
+                                    Selecciona uno o más clubs para asociar al evento
+                                </small>
+                            }
+                        </div>
+
+                        <!-- Capacidad -->
+                        <div class="mb-4">
+                            <label asp-for="MaxCapacity" class="form-label">
+                                <i class="bi bi-people"></i> Aforo Máximo
+                                <span class="text-muted">(opcional)</span>
+                            </label>
+                            <input asp-for="MaxCapacity"
+                                   class="form-control"
+                                   placeholder="Dejar vacío para capacidad ilimitada" />
+                            <span asp-validation-for="MaxCapacity" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Número máximo de participantes permitidos
+                            </small>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Guardar Evento
+                            </button>
+
+                            <a asp-controller="Dashboard"
+                               asp-action="ClubLeader"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+      
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector('form');
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'formAlert';
+    alertDiv.className = 'alert alert-danger d-none mb-4';
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><span id="alertMessage"></span>';
+    
+    // Insertar alert al inicio del formulario
+    const firstElement = form.querySelector('.mb-3');
+    if (firstElement) {
+        form.insertBefore(alertDiv, firstElement);
+    }
+    
+    function showError(elementId, message) {
+        const input = document.querySelector('#' + elementId);
+        if (input) {
+            const errorSpan = input.parentElement.querySelector('.text-danger');
+            if (errorSpan) {
+                errorSpan.textContent = message;
+                errorSpan.style.display = 'block';
+            }
+            input.classList.add('is-invalid');
+        }
+    }
+    
+    function clearErrors() {
+        document.querySelectorAll('.text-danger').forEach(span => {
+            span.textContent = '';
+            span.style.display = 'none';
+        });
+        document.querySelectorAll('.is-invalid').forEach(input => {
+            input.classList.remove('is-invalid');
+        });
+        alertDiv.classList.add('d-none');
+    }
+    
+    function validateForm() {
+        let isValid = true;
+        clearErrors();
+        
+        // Validar Título
+        const title = document.querySelector('#Title');
+        if (title && !title.value.trim()) {
+            showError('Title', 'El título del evento es obligatorio.');
+            isValid = false;
+        } else if (title && title.value.trim().length < 3) {
+            showError('Title', 'El título debe tener al menos 3 caracteres.');
+            isValid = false;
+        }
+        
+        // Validar Descripción
+        const description = document.querySelector('#Description');
+        if (description && !description.value.trim()) {
+            showError('Description', 'La descripción del evento es obligatoria.');
+            isValid = false;
+        } else if (description && description.value.trim().length < 10) {
+            showError('Description', 'La descripción debe tener al menos 10 caracteres.');
+            isValid = false;
+        }
+        
+        // Validar Fecha
+        const startDate = document.querySelector('#StartDate');
+        if (startDate && !startDate.value) {
+            showError('StartDate', 'La fecha del evento es obligatoria.');
+            isValid = false;
+        } else if (startDate && startDate.value) {
+            const selectedDate = new Date(startDate.value);
+            const now = new Date();
+            if (selectedDate < now) {
+                showError('StartDate', 'La fecha del evento debe ser futura.');
+                isValid = false;
+            }
+        }
+        
+        // Validar Departamento (solo si está visible y no es hidden)
+        const department = document.querySelector('#DepartmentId');
+        if (department && department.type !== 'hidden' && !department.value) {
+            showError('DepartmentId', 'Debes seleccionar un departamento.');
+            isValid = false;
+        }
+        
+        // Validar Clubs (al menos uno seleccionado)
+        const clubCheckboxes = document.querySelectorAll('input[name="SelectedClubIds"]:not([type="hidden"])');
+        if (clubCheckboxes.length > 0) {
+            const anyChecked = Array.from(clubCheckboxes).some(cb => cb.checked);
+            if (!anyChecked) {
+                const clubsLabel = document.querySelector('label[class*="form-label"]');
+                if (clubsLabel && clubsLabel.textContent.includes('Club')) {
+                    const errorSpan = clubsLabel.parentElement.querySelector('.text-danger') || 
+                                    document.createElement('span');
+                    errorSpan.className = 'text-danger small d-block mt-2';
+                    errorSpan.textContent = 'Debes seleccionar al menos un club.';
+                    if (!clubsLabel.parentElement.querySelector('.text-danger')) {
+                        clubsLabel.parentElement.appendChild(errorSpan);
+                    }
+                    isValid = false;
+                }
+            }
+        }
+        
+        // Validar Capacidad (si tiene valor, debe ser positivo)
+        const capacity = document.querySelector('#MaxCapacity');
+        if (capacity && capacity.value.trim()) {
+            const capacityValue = parseInt(capacity.value);
+            if (isNaN(capacityValue) || capacityValue <= 0) {
+                showError('MaxCapacity', 'La capacidad debe ser un número positivo.');
+                isValid = false;
+            } else if (capacityValue > 10000) {
+                showError('MaxCapacity', 'La capacidad no puede exceder 10,000 personas.');
+                isValid = false;
+            }
+        }
+        
+        // Mostrar alert general si hay errores
+        if (!isValid) {
+            alertDiv.classList.remove('d-none');
+            document.getElementById('alertMessage').textContent = 
+                'Por favor, corrige los errores marcados en el formulario.';
+            
+            // Scroll al primer error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+        }
+        
+        return isValid;
+    }
+    
+    // Validación al enviar el formulario
+    form.addEventListener('submit', function (e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
+    
+    // Validación en tiempo real
+    const inputs = form.querySelectorAll('input:not([type="hidden"]), textarea, select');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function () {
+            // Validar solo si el campo tiene valor o es obligatorio
+            if (this.value.trim() || this.hasAttribute('required')) {
+                const errorSpan = this.parentElement.querySelector('.text-danger');
+                if (errorSpan) {
+                    errorSpan.textContent = '';
+                    errorSpan.style.display = 'none';
+                }
+                this.classList.remove('is-invalid');
+            }
+        });
+        
+        input.addEventListener('input', function () {
+            // Limpiar error mientras el usuario escribe
+            const errorSpan = this.parentElement.querySelector('.text-danger');
+            if (errorSpan && this.value.trim()) {
+                errorSpan.textContent = '';
+                errorSpan.style.display = 'none';
+                this.classList.remove('is-invalid');
+            }
+        });
+    });
+    
+    // Validación especial para checkboxes de clubs
+    const clubCheckboxes = document.querySelectorAll('input[name="SelectedClubIds"]:not([type="hidden"])');
+    clubCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const anyChecked = Array.from(clubCheckboxes).some(cb => cb.checked);
+            const clubsError = document.querySelector('.text-danger[class*="d-block"]');
+            if (anyChecked && clubsError) {
+                clubsError.remove();
+            }
+        });
+    });
+    
+    // Validación de fecha en tiempo real
+    const startDate = document.querySelector('#StartDate');
+    if (startDate) {
+        startDate.addEventListener('change', function () {
+            const selectedDate = new Date(this.value);
+            const now = new Date();
+            const errorSpan = this.parentElement.querySelector('.text-danger');
+            
+            if (selectedDate < now && errorSpan) {
+                errorSpan.textContent = 'La fecha del evento debe ser futura.';
+                errorSpan.style.display = 'block';
+                this.classList.add('is-invalid');
+            } else if (errorSpan) {
+                errorSpan.textContent = '';
+                errorSpan.style.display = 'none';
+                this.classList.remove('is-invalid');
+            }
+        });
+    }
+});
+    </script>
+}

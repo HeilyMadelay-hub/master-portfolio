@@ -1,0 +1,193 @@
+@using Business_School.ViewModels
+@model DepartmentFormViewModel
+@{
+    ViewData["Title"] = "Editar Departamento";
+}
+
+<h2 class="mt-4 mb-3 text-primary fw-bold">
+    <i class="bi bi-pencil-square"></i> Editar Departamento
+</h2>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white fw-semibold">
+        Información del Departamento
+    </div>
+
+    <div class="card-body p-4">
+        <form id="editDepartmentForm" asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Department.Id" />
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <!-- Alert de errores -->
+            <div id="formAlert" class="alert alert-danger d-none mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <span id="alertMessage"></span>
+            </div>
+
+            <div class="row g-3">
+                <!-- Name -->
+                <div class="col-md-6">
+                    <label asp-for="Department.Name" class="form-label fw-semibold"></label>
+                    <input asp-for="Department.Name" class="form-control" placeholder="Ej: Marketing & Ventas" />
+                    <span data-valmsg-for="Department.Name" class="text-danger small"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-6">
+                    <label asp-for="Department.Email" class="form-label fw-semibold"></label>
+                    <input asp-for="Department.Email" class="form-control" type="email" placeholder="departamento@@school.com" />
+                    <span data-valmsg-for="Department.Email" class="text-danger small"></span>
+                </div>
+
+                <!-- Phone -->
+                <div class="col-md-6">
+                    <label asp-for="Department.PhoneNumber" class="form-label fw-semibold"></label>
+                    <input asp-for="Department.PhoneNumber" class="form-control" placeholder="+34 600 123 456" />
+                    <span data-valmsg-for="Department.PhoneNumber" class="text-danger small"></span>
+                </div>
+
+                <!-- Office Location -->
+                <div class="col-md-6">
+                    <label asp-for="Department.OfficeLocation" class="form-label fw-semibold"></label>
+                    <input asp-for="Department.OfficeLocation" class="form-control" placeholder="Oficina 3B, Edificio Central" />
+                    <span data-valmsg-for="Department.OfficeLocation" class="text-danger small"></span>
+                </div>
+
+                <!-- Manager dropdown -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Manager del Departamento (opcional)</label>
+                    <select asp-for="Department.ManagerUserId"
+                            class="form-select"
+                            asp-items="@(new SelectList(Model.Managers, "Id", "FullName", Model.Department.ManagerUserId))">
+                        <option value="">-- Sin responsable --</option>
+                    </select>
+                    <span data-valmsg-for="Department.ManagerUserId" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check-lg"></i> Guardar
+                </button>
+
+                @if (!string.IsNullOrEmpty(Model.ReturnUrl))
+                {
+                    <a href="@Model.ReturnUrl" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById('editDepartmentForm');
+            const alertDiv = document.getElementById('formAlert');
+            const alertMessage = document.getElementById('alertMessage');
+
+            function showError(elementId, message) {
+                const errorSpan = document.querySelector('[data-valmsg-for="' + elementId + '"]');
+                if (errorSpan) {
+                    errorSpan.textContent = message;
+                    errorSpan.classList.add('text-danger');
+                }
+            }
+
+            function clearErrors() {
+                document.querySelectorAll('[data-valmsg-for]').forEach(span => {
+                    span.textContent = '';
+                    span.classList.remove('text-danger');
+                });
+                alertDiv.classList.add('d-none');
+            }
+
+            function validateForm() {
+                let isValid = true;
+                clearErrors();
+
+                const name = document.querySelector('#Department_Name');
+                if (!name.value.trim()) {
+                    showError('Department.Name', 'El nombre del departamento es obligatorio.');
+                    isValid = false;
+                } else if (name.value.trim().length < 3) {
+                    showError('Department.Name', 'El nombre debe tener al menos 3 caracteres.');
+                    isValid = false;
+                }
+
+                const email = document.querySelector('#Department_Email');
+                const emailRegex = /\S+@@\S+\.\S+/;
+                if (!email.value.trim()) {
+                    showError('Department.Email', 'El email es obligatorio.');
+                    isValid = false;
+                } else if (!emailRegex.test(email.value.trim())) {
+                    showError('Department.Email', 'Ingresa un email válido.');
+                    isValid = false;
+                }
+
+                const phone = document.querySelector('#Department_PhoneNumber');
+                const phoneRegex = /^[\+]?[0-9\s\-\(\)]{7,15}$/;
+                if (!phone.value.trim()) {
+                    showError('Department.PhoneNumber', 'El teléfono es obligatorio.');
+                    isValid = false;
+                } else if (!phoneRegex.test(phone.value.replace(/\s+/g, ''))) {
+                    showError('Department.PhoneNumber', 'Ingresa un teléfono válido.');
+                    isValid = false;
+                }
+
+                const office = document.querySelector('#Department_OfficeLocation');
+                if (!office.value.trim()) {
+                    showError('Department.OfficeLocation', 'La ubicación de la oficina es obligatoria.');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    alertDiv.classList.remove('d-none');
+                    alertMessage.textContent = 'Por favor, corrige los errores marcados en el formulario.';
+
+                    const firstError = document.querySelector('.text-danger');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+
+                return isValid;
+            }
+
+            form.addEventListener('submit', function (e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                }
+            });
+
+            const inputs = form.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function () {
+                    if (this.value.trim() === '' && this.hasAttribute('required')) {
+                        const fieldName = this.id;
+                        showError(fieldName, 'Este campo es obligatorio.');
+                    }
+                });
+
+                input.addEventListener('input', function () {
+                    const fieldName = this.id;
+                    const errorSpan = document.querySelector('[data-valmsg-for="' + fieldName + '"]');
+                    if (errorSpan && this.value.trim() !== '') {
+                        errorSpan.textContent = '';
+                        errorSpan.classList.remove('text-danger');
+                    }
+                });
+            });
+        });
+    </script>
+}

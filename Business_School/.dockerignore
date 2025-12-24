@@ -1,0 +1,43 @@
+# ============================================
+# .dockerignore - Archivos a excluir del build
+# ============================================
+
+# Carpetas de build y binarios
+**/bin/
+**/obj/
+**/out/
+
+# Archivos de usuario y configuración local
+**/.vs/
+**/.vscode/
+**/.idea/
+**/.git/
+**/.gitignore
+**/.gitattributes
+
+# Archivos de NuGet
+**/*.user
+**/*.suo
+**/.DS_Store
+
+# Archivos de logs
+**/logs/
+**/*.log
+
+# Archivos de Docker
+**/Dockerfile*
+**/docker-compose*
+**/.dockerignore
+
+# Node modules (si tienes frontend)
+**/node_modules/
+**/npm-debug.log
+
+# Archivos de base de datos local
+**/*.mdf
+**/*.ldf
+**/*.sqlite
+
+# Archivos temporales
+**/tmp/
+**/temp/

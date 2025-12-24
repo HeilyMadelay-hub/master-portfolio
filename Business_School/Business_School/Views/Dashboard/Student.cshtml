@@ -1,0 +1,396 @@
+@model Business_School.ViewModels.Dashboard.DashboardStudentVM
+@using Business_School.Models
+@{
+    ViewData["Title"] = "Mi Experiencia Personal";
+}
+
+<div class="container-fluid mt-4">
+
+    <!-- A. Bienvenida personalizada -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <span class="text-primary">Hola, @Model.StudentName</span> 
+            </h2>
+            <p class="text-muted mb-0">Bienvenido a tu dashboard personal</p>
+        </div>
+        <div>
+            <a asp-controller="Students" asp-action="Profile" class="btn btn-outline-primary me-2">
+                <i class="bi bi-person-circle"></i> Ver Perfil
+            </a>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- B. Mi progreso (Gamificación) - Card estilo "perfil gamer" -->
+    <div class="card shadow-lg mb-4 border-0 overflow-hidden">
+        <div class="card-header text-white py-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <h4 class="mb-0">
+                <i class="bi bi-trophy-fill"></i> Mi Progreso de Gamificación
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+
+                <!-- Puntos Totales -->
+                <div class="col-md-4 mb-3">
+                    <div class="p-4 rounded-3" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                        <i class="bi bi-star-fill text-white" style="font-size: 3rem;"></i>
+                        <h2 class="mt-2 mb-0 text-white fw-bold">@Model.TotalPoints</h2>
+                        <p class="text-white mb-0 fs-5">Puntos Totales</p>
+                    </div>
+                </div>
+
+                <!-- Nivel -->
+                <div class="col-md-4 mb-3">
+                    @{
+                        var levelStyle = Model.Level switch
+                        {
+                            StudentLevel.Principiante => "background: linear-gradient(135deg, #6c757d 0%, #495057 100%);",
+                            StudentLevel.Intermedio => "background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);",
+                            StudentLevel.Avanzado => "background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);",
+                            StudentLevel.Experto => "background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);",
+                            _ => "background: linear-gradient(135deg, #6c757d 0%, #495057 100%);"
+                        };
+                        var levelIcon = Model.Level switch
+                        {
+                            StudentLevel.Principiante => "bi-emoji-smile",
+                            StudentLevel.Intermedio => "bi-emoji-sunglasses",
+                            StudentLevel.Avanzado => "bi-award-fill",
+                            StudentLevel.Experto => "bi-gem",
+                            _ => "bi-person"
+                        };
+                    }
+                    <div class="p-4 rounded-3" style="@levelStyle">
+                        <i class="bi @levelIcon text-white" style="font-size: 3rem;"></i>
+                        <h2 class="mt-2 mb-0 text-white fw-bold">@Model.Level</h2>
+                        <p class="text-white mb-0 fs-5">Nivel Actual</p>
+                    </div>
+                </div>
+
+                <!-- Logros -->
+                <div class="col-md-4 mb-3">
+                    <div class="p-4 rounded-3" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <i class="bi bi-trophy-fill text-white" style="font-size: 3rem;"></i>
+                        <h2 class="mt-2 mb-0 text-white fw-bold">@Model.Achievements.Count</h2>
+                        <p class="text-white mb-0 fs-5">Logros Desbloqueados</p>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Achievements.Any())
+            {
+                <hr />
+                <h5 class="mb-3"><i class="bi bi-trophy"></i> Logros Desbloqueados</h5>
+                <div class="row">
+                    @foreach (var achievement in Model.Achievements)
+                    {
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="d-flex align-items-center p-3 bg-light rounded border">
+                                <i class="bi @achievement.Icon text-success fs-2 me-3"></i>
+                                <div>
+                                    <strong>@achievement.Name</strong>
+                                    <br />
+                                    <small class="text-muted">@achievement.Description</small>
+                                    <br />
+                                    <small class="text-muted"><i class="bi bi-calendar-check"></i> @achievement.UnlockedAt.ToString("dd/MM/yyyy")</small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- C. Mis Clubs y D. Clubs Recomendados -->
+    <div class="row mb-4">
+
+        <!-- Mis Clubs -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header bg-dark text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-people-fill"></i> Mis Clubs</h5>
+                        <span class="badge bg-light text-dark">@Model.MyClubs.Count clubs</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.MyClubs.Any())
+                    {
+                        <div class="row g-3">
+                            @foreach (var club in Model.MyClubs)
+                            {
+                                <div class="col-12">
+                                    <div class="card border-start border-primary border-4 h-100">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="card-title mb-1">@club.Name</h6>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-building"></i> @club.DepartmentName
+                                                    </small>
+                                                    <br />
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-people"></i> @club.MemberCount miembros
+                                                    </small>
+                                                </div>
+                                                <div>
+                                                    <a asp-controller="Clubs" asp-action="Details" asp-route-id="@club.Id" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-eye"></i> Ver Club
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i> No perteneces a ningún club todavía.
+                            <a asp-controller="Clubs" asp-action="Index" class="alert-link">¡Explora y únete!</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Clubs Recomendados -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-lightbulb-fill"></i> Clubs Recomendados Para Ti</h5>
+                        <span class="badge bg-light text-dark">@Model.RecommendedClubs.Count sugerencias</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecommendedClubs.Any())
+                    {
+                        <div class="row g-3">
+                            @foreach (var club in Model.RecommendedClubs)
+                            {
+                                <div class="col-12">
+                                    <div class="card border-0 shadow-sm h-100">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <h6 class="card-title mb-0 me-2">@club.Name</h6>
+                                                        <span class="badge bg-info">@club.MatchPercentage% afinidad</span>
+                                                    </div>
+                                                    <p class="text-muted small mb-2">
+                                                        @(club.Description.Length > 80 ? club.Description.Substring(0, 80) + "..." : club.Description)
+                                                    </p>
+                                                    <small class="text-muted d-block">
+                                                        <i class="bi bi-building"></i> @club.DepartmentName | 
+                                                        <i class="bi bi-people"></i> @club.MemberCount miembros
+                                                    </small>
+                                                    <small class="text-success"><i class="bi bi-lightbulb"></i> @club.Reason</small>
+                                                </div>
+                                                <div class="ms-2">
+                                                    <a asp-controller="Clubs" asp-action="Details" asp-route-id="@club.Id" class="btn btn-info btn-sm text-white">
+                                                        <i class="bi bi-plus-circle"></i> Unirme
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning mb-0">
+                            <i class="bi bi-exclamation-circle"></i> No tenemos recomendaciones en este momento. 
+                            ¡Sigue explorando clubs!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <hr />
+
+    <!-- E. Próximos eventos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-calendar-event-fill"></i> Próximos Eventos</h5>
+                        <span class="badge bg-light text-dark">@Model.UpcomingEvents.Count eventos</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.UpcomingEvents.Any())
+                    {
+                        <div class="row g-3">
+                            @foreach (var ev in Model.UpcomingEvents.Take(6))
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card h-100 @(ev.IsRegistered ? "border-success border-2" : "")">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-0">@ev.Title</h6>
+                                                @if (ev.IsRegistered)
+                                                {
+                                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Inscrito</span>
+                                                }
+                                            </div>
+                                            <p class="text-muted small mb-2">
+                                                <i class="bi bi-calendar3"></i> @ev.StartDate.ToString("dd/MM/yyyy HH:mm")
+                                            </p>
+                                            <p class="text-muted small mb-2">
+                                                <i class="bi bi-building"></i> @ev.DepartmentName
+                                            </p>
+                                            <p class="mb-3">
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-star-fill"></i> +@ev.PointsReward pts
+                                                </span>
+                                            </p>
+                                            <a asp-controller="Events" asp-action="Details" asp-route-id="@ev.Id" class="btn btn-sm @(ev.IsRegistered ? "btn-outline-success" : "btn-success") w-100">
+                                                @if (ev.IsRegistered)
+                                                {
+                                                    <i class="bi bi-eye"></i> <span>Ver Detalles</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-plus-circle"></i> <span>Registrarse</span>
+                                                }
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i> No hay eventos próximos programados.
+                            <a asp-controller="Events" asp-action="Index" class="alert-link">Explorar eventos</a>
+                        </div>
+                    }
+                </div>
+                <div class="card-footer bg-light text-end">
+                    <a asp-controller="Events" asp-action="Index" class="btn btn-success">
+                        <i class="bi bi-calendar-event"></i> Ver Todos los Eventos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- F. Mis eventos registrados -->
+    @if (Model.MyRegisteredEvents.Any())
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0 border-top border-primary border-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-primary"><i class="bi bi-calendar-check-fill"></i> Mis Próximos Eventos Registrados</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><i class="bi bi-calendar-check"></i> Evento</th>
+                                        <th><i class="bi bi-clock"></i> Fecha y Hora</th>
+                                        <th><i class="bi bi-building"></i> Departamento</th>
+                                        <th><i class="bi bi-star"></i> Puntos</th>
+                                        <th class="text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var evt in Model.MyRegisteredEvents)
+                                    {
+                                        <tr>
+                                            <td><strong>@evt.Title</strong></td>
+                                            <td>
+                                                <i class="bi bi-calendar3"></i> @evt.StartDate.ToString("dd/MM/yyyy")
+                                                <br />
+                                                <small class="text-muted"><i class="bi bi-clock"></i> @evt.StartDate.ToString("HH:mm")</small>
+                                            </td>
+                                            <td><span class="badge bg-secondary">@evt.DepartmentName</span></td>
+                                            <td><span class="badge bg-warning text-dark">+@evt.PointsReward pts</span></td>
+                                            <td class="text-center">
+                                                <a asp-controller="Events" asp-action="Details" asp-route-id="@evt.Id" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i> Ver
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <hr />
+
+    <!-- F. Acciones rápidas -->
+    <h4 class="mb-3"><i class="bi bi-lightning-fill text-warning"></i> Acciones Rápidas</h4>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+
+        <a asp-controller="Students" asp-action="EditSelf" class="btn btn-outline-primary btn-lg">
+            <i class="bi bi-person-circle"></i> Editar Perfil
+        </a>
+
+        <a asp-controller="Clubs" asp-action="Index" class="btn btn-outline-success btn-lg">
+            <i class="bi bi-people"></i> Explorar Clubs
+        </a>
+
+        <a asp-controller="Events" asp-action="Index" class="btn btn-outline-info btn-lg">
+            <i class="bi bi-calendar-event"></i> Ver Eventos
+        </a>
+
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .border-4 {
+        border-width: 4px !important;
+    }
+</style>

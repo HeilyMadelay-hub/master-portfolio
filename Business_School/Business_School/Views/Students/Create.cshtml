@@ -1,0 +1,197 @@
+@model Business_School.ViewModels.Students.StudentFormVM
+
+@{
+    ViewData["Title"] = "Crear Estudiante";
+}
+
+<h2 class="mb-4">Crear Nuevo Estudiante</h2>
+
+<div class="row">
+    <div class="col-md-6">
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Points" class="form-label"></label>
+                <input asp-for="Points" class="form-control" />
+                <span asp-validation-for="Points" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-1">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" type="password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <small class="text-muted d-block mb-3">La contraseña debe tener mayúsculas, minúsculas, un dígito y un carácter especial.</small>
+
+            <div class="form-group mb-3">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" type="password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Crear</button>
+            @{
+                var backUrl = !string.IsNullOrWhiteSpace(Model.ReturnUrl) ? Model.ReturnUrl : Url.Action("Admin", "Dashboard");
+            }
+            <a href="@backUrl" class="btn btn-secondary ms-2">Volver</a>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector('form');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger d-none mb-3';
+            alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i><span id="alertMessage"></span>';
+
+            const firstElement = form.querySelector('.form-group');
+            if (firstElement) {
+                form.insertBefore(alertDiv, firstElement);
+            }
+
+            function showError(fieldName, message) {
+                const input = document.querySelector('[name="' + fieldName + '"]');
+                if (input) {
+                    const errorSpan = input.parentElement.querySelector('.text-danger');
+                    if (errorSpan) {
+                        errorSpan.textContent = message;
+                    }
+                    input.classList.add('is-invalid');
+                }
+            }
+
+            function clearErrors() {
+                document.querySelectorAll('.text-danger').forEach(span => {
+                    if (!span.hasAttribute('asp-validation-summary')) {
+                        span.textContent = '';
+                    }
+                });
+                document.querySelectorAll('.is-invalid').forEach(input => {
+                    input.classList.remove('is-invalid');
+                });
+                alertDiv.classList.add('d-none');
+            }
+
+            function validateForm() {
+                let isValid = true;
+                clearErrors();
+
+                // Validar FullName
+                const fullName = document.querySelector('[name="FullName"]');
+                if (!fullName.value.trim()) {
+                    showError('FullName', 'El nombre completo es obligatorio.');
+                    isValid = false;
+                } else if (fullName.value.trim().length < 3) {
+                    showError('FullName', 'El nombre debe tener al menos 3 caracteres.');
+                    isValid = false;
+                }
+
+                // Validar Email
+                const email = document.querySelector('[name="Email"]');
+                const emailRegex = /\S+@@\S+\.\S+/;
+                if (!email.value.trim()) {
+                    showError('Email', 'El email es obligatorio.');
+                    isValid = false;
+                } else if (!emailRegex.test(email.value.trim())) {
+                    showError('Email', 'Ingresa un email válido.');
+                    isValid = false;
+                }
+
+                // Validar Points
+                const points = document.querySelector('[name="Points"]');
+                if (points && points.value.trim()) {
+                    const pointsValue = parseInt(points.value);
+                    if (isNaN(pointsValue) || pointsValue < 0) {
+                        showError('Points', 'Los puntos deben ser un número mayor o igual a 0.');
+                        isValid = false;
+                    }
+                }
+
+                // Validar Password
+                const password = document.querySelector('[name="Password"]');
+                if (!password.value) {
+                    showError('Password', 'La contraseña es obligatoria.');
+                    isValid = false;
+                } else if (password.value.length < 6) {
+                    showError('Password', 'La contraseña debe tener al menos 6 caracteres.');
+                    isValid = false;
+                } else {
+                    // Validar requisitos de complejidad
+                    const hasUpper = /[A-Z]/.test(password.value);
+                    const hasLower = /[a-z]/.test(password.value);
+                    const hasDigit = /[0-9]/.test(password.value);
+                    const hasSpecial = /[^A-Za-z0-9]/.test(password.value);
+
+                    if (!hasUpper || !hasLower || !hasDigit || !hasSpecial) {
+                        showError('Password', 'La contraseña debe tener mayúsculas, minúsculas, un dígito y un carácter especial.');
+                        isValid = false;
+                    }
+                }
+
+                // Validar ConfirmPassword
+                const confirmPassword = document.querySelector('[name="ConfirmPassword"]');
+                if (!confirmPassword.value) {
+                    showError('ConfirmPassword', 'Debes confirmar la contraseña.');
+                    isValid = false;
+                } else if (password.value !== confirmPassword.value) {
+                    showError('ConfirmPassword', 'Las contraseñas no coinciden.');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    alertDiv.classList.remove('d-none');
+                    document.getElementById('alertMessage').textContent = 'Por favor, corrige los errores marcados.';
+
+                    const firstError = document.querySelector('.is-invalid');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstError.focus();
+                    }
+                }
+
+                return isValid;
+            }
+
+            form.addEventListener('submit', function (e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                }
+            });
+
+            // Validación en tiempo real
+            const inputs = form.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', function () {
+                    if (this.classList.contains('is-invalid')) {
+                        this.classList.remove('is-invalid');
+                        const errorSpan = this.parentElement.querySelector('.text-danger');
+                        if (errorSpan) {
+                            errorSpan.textContent = '';
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,181 @@
+@model Business_School.Models.Club
+@using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Detalle del Club";
+    var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var userId = string.IsNullOrEmpty(userIdStr) ? 0 : int.Parse(userIdStr);
+    bool isStudent = User.IsInRole("Student");
+    bool isLeader = User.IsInRole("ClubLeader") && Model.LeaderId == userId;
+    bool isAdminOrManager = User.IsInRole("Admin") || User.IsInRole("DepartmentManager");
+    bool isMember = ViewData["IsMember"] != null && (bool)ViewData["IsMember"];
+
+    // Construir la URL de retorno correctamente
+    var currentUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+
+    string returnUrl;
+    if (ViewData["ReturnUrl"] is string ru && !string.IsNullOrEmpty(ru))
+    {
+        returnUrl = ru;
+    }
+    else if (User.IsInRole("DepartmentManager"))
+    {
+        returnUrl = Url.Action("DepartmentManager", "Dashboard");
+    }
+    else
+    {
+        returnUrl = Url.Action("Index", "Clubs");
+    }
+}
+
+<div class="container mt-4">
+
+    @* Navigation header - More prominent *@
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="mb-0">
+                <i class="bi bi-people-fill text-primary"></i> @Model.Name
+            </h2>
+        </div>
+    </div>
+
+    @* Alerts *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle"></i> @TempData["Warning"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["DeleteSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> @TempData["DeleteSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-info-circle"></i> Información del Club</h4>
+        </div>
+        <div class="card-body">
+            <p>
+                <strong>Departamento:</strong>
+                <a asp-controller="Departments" asp-action="Details" asp-route-id="@Model.DepartmentId">
+                    @Model.Department?.Name
+                </a>
+            </p>
+            <p><strong>Líder del Club:</strong> @Model.Leader?.FullName (@Model.Leader?.Email)</p>
+            <p><strong>Descripción:</strong> @Model.Description</p>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="bi bi-calendar-event"></i> Eventos del Club</h4>
+        </div>
+        <div class="card-body">
+            @if (Model.EventClubs != null && Model.EventClubs.Any())
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var ec in Model.EventClubs)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a asp-controller="Events"
+                               asp-action="Details"
+                               asp-route-id="@ec.EventId"
+                               asp-route-returnUrl="@currentUrl">
+                                @ec.Event?.Title
+                            </a>
+                            <span class="badge bg-secondary">@ec.Event?.StartDate.ToString("dd/MM/yyyy")</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">No hay eventos asociados a este club.</p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0"><i class="bi bi-people"></i> Miembros del Club</h4>
+        </div>
+        <div class="card-body">
+            @if (Model.StudentClubs != null && Model.StudentClubs.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Puntos</th>
+                                <th>Nivel</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sc in Model.StudentClubs)
+                            {
+                                <tr>
+                                    <td>@sc.UserStudent?.FullName</td>
+                                    <td>@sc.UserStudent?.Email</td>
+                                    <td>@sc.PointsFromThisClub</td>
+                                    <td>@sc.UserStudent?.Level</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No hay miembros aún en este club.</p>
+            }
+        </div>
+    </div>
+
+    <div style="margin: 20px 0;">
+        @if (User.Identity?.IsAuthenticated == true && isStudent)
+        {
+            @if (!isMember)
+            {
+                <form action="@Url.Action("JoinClub", "Clubs")" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clubId" value="@Model.Id" />
+                    <button type="submit" style="padding: 10px 20px; background: green; color: white; border: none; cursor: pointer;">
+                        Unirse al Club (+50 pts)
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form action="@Url.Action("LeaveClub", "Clubs")" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clubId" value="@Model.Id" />
+                    <button type="submit" style="padding: 10px 20px; background: orange; color: white; border: none; cursor: pointer;">
+                        Dejar Club
+                    </button>
+                </form>
+            }
+        }
+    </div>
+
+</div>

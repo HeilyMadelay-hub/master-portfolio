@@ -1,0 +1,114 @@
+@model Business_School.ViewModels.Students.StudentProfileVM
+@using System.Globalization
+
+<div class="container mt-4">
+
+    <!-- Header -->
+    <h2 class="mb-4 text-primary"><i class="bi bi-person-circle"></i> Mi Perfil</h2>
+
+    <!-- Información personal -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-2">@Model.FullName</h4>
+            <p class="mb-1"><strong>Email:</strong> <span class="text-muted">@Model.Email</span></p>
+            <p class="mb-1"><strong>Nivel:</strong> <span class="badge bg-info text-dark">@Model.Level</span></p>
+            <p class="mb-0"><strong>Puntos:</strong> <span class="badge bg-warning text-dark">@Model.Points</span></p>
+        </div>
+    </div>
+
+    <!-- Clubs -->
+    <h4 class="mb-3"><i class="bi bi-people-fill"></i> Mis Clubs</h4>
+    @if (Model.Clubs.Any())
+    {
+        <div class="row g-3 mb-4">
+            @foreach (var club in Model.Clubs)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100 border-primary shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title mb-0">@club</h6>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No perteneces a ningún club todavía.
+        </div>
+    }
+
+    <!-- Eventos -->
+    <h4 class="mb-3"><i class="bi bi-calendar-event-fill"></i> Eventos</h4>
+    @if (Model.UpcomingEvents.Any())
+    {
+        <div class="table-responsive mb-4">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Título</th>
+                        <th>Fecha</th>
+                        <th>Asistido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model.UpcomingEvents)
+                    {
+                        DateTime parsedDate;
+                        DateTime.TryParse(e.Date, CultureInfo.CurrentCulture, DateTimeStyles.None, out parsedDate);
+
+                        <tr>
+                            <td>@e.Name</td>
+                            <td>@parsedDate.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (e.Attended)
+                                {
+                                    <span class="badge bg-success">Sí</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">No</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> No tienes eventos próximos.
+        </div>
+    }
+
+    <!-- Logros -->
+    <h4 class="mb-3"><i class="bi bi-trophy-fill"></i> Logros</h4>
+    @if (Model.Achievements.Any())
+    {
+        <div class="row g-3">
+            @foreach (var a in Model.Achievements)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100 border-success shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title text-success mb-1">@a.Title</h6>
+                            <p class="card-text text-muted mb-0">@a.Description</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-secondary">
+            <i class="bi bi-info-circle"></i> Aún no has desbloqueado logros.
+        </div>
+    }
+
+</div>
