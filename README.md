@@ -35,7 +35,7 @@ From full-stack web applications to microservices, AI integration, and cloud dep
 
 ## 🚀 Featured Projects
 
-### **1. 🎓 [Business School Management System](./business-school-aspnet-core-mvc-identity)**
+### **1. 🎓 [Business School Management System](https://github.com/HeilyMadelay-hub/Master-Proyects/tree/business-school-aspnet-core-mvc-identity)**
 **Full-Stack Academic Management Platform**
 
 **Tech Stack:** ASP.NET Core MVC • Entity Framework • SQL Server • Docker • Bootstrap
@@ -54,7 +54,7 @@ From full-stack web applications to microservices, AI integration, and cloud dep
 - Docker containerization
 - Enterprise security patterns
 
-[**→ View Project**](./Business_School)
+[**→ View Project**](https://github.com/HeilyMadelay-hub/Master-Proyects/tree/business-school-aspnet-core-mvc-identity)
 
 ---
 
@@ -192,14 +192,14 @@ Each project includes:
 
 ### **Clone the Repository**
 ```bash
-git clone https://github.com/HeilyMadelay-hub/Master.git
-cd Master
+git clone https://github.com/HeilyMadelay-hub/Master-Proyects.git
+cd Master-Proyects
 ```
 
 ### **Navigate to a Project**
 ```bash
 # Example: Business School System
-cd business-school-aspnet-core-mvc-identity
+git checkout business-school-aspnet-core-mvc-identity
 ```
 
 ### **Follow Project-Specific Instructions**
@@ -414,4 +414,3 @@ This portfolio represents my commitment to creating that future through quality 
 <p align="center">
   Made with ❤️ and countless hours of coding
 </p>
-
