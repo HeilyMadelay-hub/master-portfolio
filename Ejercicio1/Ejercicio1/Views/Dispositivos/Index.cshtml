@@ -1,0 +1,69 @@
+﻿@model IEnumerable<Ejercicio1.Models.Dispositivo>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Reservas";
+}
+<h1 class="mb-4">Reservas</h1>
+<p>
+    <a asp-action="Create" class="btn btn-success mb-3">Crear nuevo dispositivo</a>
+</p>
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Reservas</th>
+            <th>Opciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Nombre</td>
+                <td>
+                    @if (item.Reservas != null && item.Reservas.Any())
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var r in item.Reservas)
+                            {
+                                <li>
+                                    <span class="badge bg-primary">@r.Usuario?.NombreCompleto</span>
+                                    <span class="text-muted">
+                                        (@r.FechaInicio.ToString("dd/MM/yyyy HH:mm") - @r.FechaFin.ToString("dd/MM/yyyy HH:mm"))
+                                    </span>
+                                    @if (r.FechaFin >= DateTime.Now)
+                                    {
+                                        <span class="badge bg-success">Activa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Finalizada</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-muted">No hay reservas</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.DispositivoId" class="btn btn-sm btn-warning mb-1">Editar</a>
+                    <a asp-action="Details" asp-route-id="@item.DispositivoId" class="btn btn-sm btn-info mb-1">Detalles</a>
+                    <a asp-action="Delete" asp-route-id="@item.DispositivoId" class="btn btn-sm btn-danger mb-1">Eliminar</a>
+
+                    @* Solo mostrar botón Reservar si NO hay reservas activas *@
+                    @if (item.Reservas == null || !item.Reservas.Any(r => r.FechaFin >= DateTime.Now))
+                    {
+                        <a asp-controller="Reservas" asp-action="Create" asp-route-dispositivoId="@item.DispositivoId" class="btn btn-sm btn-primary mb-1">Reservar</a>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Ya reservado</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

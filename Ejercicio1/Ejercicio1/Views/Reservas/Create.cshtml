@@ -1,0 +1,57 @@
+﻿@model Ejercicio1.Models.Reserva
+
+@{
+    Layout = "_Layout";
+}
+
+<h1 class="mb-4">Crear Reserva</h1>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="DispositivoId" class="form-label"></label>
+        <select asp-for="DispositivoId"
+                asp-items="@(ViewData["DispositivoId"] as SelectList)"
+                class="form-select">
+            <option value="">Seleccione un dispositivo</option>
+        </select>
+        <span asp-validation-for="DispositivoId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="UsuarioId" class="form-label"></label>
+        <select asp-for="UsuarioId"
+                asp-items="@(ViewData["UsuarioId"] as SelectList)"
+                class="form-select">
+            <option value="">Seleccione un usuario</option>
+        </select>
+        <span asp-validation-for="UsuarioId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FechaInicio" class="form-label"></label>
+        <input asp-for="FechaInicio"
+               class="form-control"
+               type="datetime-local" />
+        <span asp-validation-for="FechaInicio" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FechaFin" class="form-label"></label>
+        <input asp-for="FechaFin"
+               class="form-control"
+               type="datetime-local" />
+        <span asp-validation-for="FechaFin" class="text-danger"></span>
+    </div>
+
+    <div class="d-flex gap-2">
+        @if (Model.FechaFin == default(DateTime) || Model.FechaFin >= DateTime.Now)
+        {
+            <button type="submit" class="btn btn-primary">Crear Reserva</button>
+        }
+        else
+        {
+            <p class="text-danger">Esta reserva ya ha finalizado.</p>
+        }
+        <a asp-controller="Dispositivos" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>

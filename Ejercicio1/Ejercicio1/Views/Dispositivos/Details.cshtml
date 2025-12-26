@@ -1,0 +1,36 @@
+﻿@model Ejercicio1.Models.Dispositivo
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Detalle Dispositivo";
+}
+
+<h1 class="mb-4">Detalle del Dispositivo</h1>
+
+<p><strong>Nombre:</strong> @Model.Nombre</p>
+
+<h3>Reservas</h3>
+
+@if (Model.Reservas.Any())
+{
+    <ul class="list-group">
+        @foreach (var r in Model.Reservas)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                @r.Usuario.NombreCompleto - @r.FechaInicio.ToShortDateString() → @r.FechaFin.ToShortDateString()
+                @if (r.FechaFin >= DateTime.Now)
+                {
+                    <span class="badge bg-success">Activa</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Finalizada</span>
+                }
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-muted">No tiene reservas</p>
+}

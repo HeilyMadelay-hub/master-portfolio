@@ -1,0 +1,26 @@
+﻿@model Ejercicio1.Models.Dispositivo
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Eliminar dispositivo";
+}
+
+<h1 class="mb-4">Eliminar Dispositivo</h1>
+
+<h5>¿Estás seguro de que quieres eliminar este dispositivo?</h5>
+
+<div class="mb-3">
+    <strong>Nombre:</strong> @Model.Nombre
+</div>
+
+@if (Model.Reservas.Any())
+{
+    <p class="text-danger">Este dispositivo tiene reservas asociadas.</p>
+}
+
+<form asp-action="DeleteConfirmed" asp-route-id="@Model.DispositivoId" method="post">
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
