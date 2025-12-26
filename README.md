@@ -2,8 +2,8 @@
 
 ### *Advanced Software Engineering Projects & Technical Excellence*
 
-![Projects](https://img.shields.io/badge/Projects-1-success)
-![Technologies](https://img.shields.io/badge/Technologies-8+-blue)
+![Projects](https://img.shields.io/badge/Projects-2-success)
+![Technologies](https://img.shields.io/badge/Technologies-10+-blue)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![Architecture](https://img.shields.io/badge/Architecture-Enterprise%20Grade-orange)
 
@@ -55,6 +55,53 @@ From full-stack web applications to microservices, AI integration, and cloud dep
 - Enterprise security patterns
 
 [**→ View Project**](https://github.com/HeilyMadelay-hub/Master-Proyects/tree/business-school-aspnet-core-mvc-identity)
+
+---
+
+### **2. 🔧 [Backend Advanced Development Exam](https://github.com/HeilyMadelay-hub/Master-Proyects/tree/backend-advanced-module3-exam)**
+**Enterprise-Grade MVC & Web API Systems**
+
+**Tech Stack:** ASP.NET Core 8.0 • Entity Framework Core • SQL Server • Swagger • RESTful APIs
+
+**Highlights:**
+- 🔬 Laboratory Device Reservation System (MVC)
+- 📦 Inventory & Orders Management API (Web API)
+- 🐛 Error identification and correction exercise
+- 🏗️ Service layer architecture with business validation
+- 📊 Advanced LINQ queries with projections
+- 🔄 Transaction management for data consistency
+
+**What It Demonstrates:**
+- **MVC Expertise:**
+  - Complex business logic validation (reservation conflicts, user limits)
+  - Calculated properties with `[NotMapped]` attributes
+  - Service layer pattern for separation of concerns
+  - Advanced EF Core queries with `Include` and `ThenInclude`
+  - Transaction handling for data integrity
+
+- **Web API Mastery:**
+  - RESTful API design with proper HTTP status codes
+  - DTO pattern for clean API contracts
+  - Stock validation and inventory management
+  - Swagger/OpenAPI documentation
+  - Query optimization with `AsNoTracking` and projections
+
+- **Best Practices:**
+  - Async/await patterns throughout
+  - Proper exception handling
+  - Dependency injection configuration
+  - Database migration management
+  - Enterprise-level error resolution skills
+
+**Key Features:**
+- ✅ Device availability tracking with dynamic calculations
+- ✅ Reservation conflict detection and prevention
+- ✅ Order processing with automatic stock updates
+- ✅ Comprehensive input validation and business rules
+- ✅ Transaction-based operations for consistency
+- ✅ Optimized database queries for performance
+
+[**→ View Project**](https://github.com/HeilyMadelay-hub/Master-Proyects/tree/backend-advanced-module3-exam)
 
 ---
 
@@ -137,12 +184,12 @@ CI/CD         ████████████░░░░░  75%
 ## 📊 Repository Statistics
 
 ```
-Total Projects:        1 (Growing)
-Lines of Code:         15,000+
-Technologies Used:     8+
+Total Projects:        2 (Growing)
+Lines of Code:         20,000+
+Technologies Used:     10+
 Docker Containers:     2
-Database Tables:       12+
-API Endpoints:         30+
+Database Tables:       20+
+API Endpoints:         40+
 ```
 
 ---
@@ -154,6 +201,7 @@ Each project is rated by complexity to help you navigate:
 | Project | Complexity | Time Investment | Key Learning |
 |---------|-----------|-----------------|--------------|
 | **Business School System** | 🔴🔴🔴🔴⚪ | 200+ hours | Service Layer, Gamification, Docker |
+| **Backend Advanced Exam** | 🔴🔴🔴🔴⚪ | 80+ hours | Error Resolution, REST APIs, EF Core Optimization |
 
 *More projects will be added as they are completed throughout the Master's program.*
 
@@ -200,6 +248,9 @@ cd Master-Proyects
 ```bash
 # Example: Business School System
 git checkout business-school-aspnet-core-mvc-identity
+
+# Example: Backend Advanced Exam
+git checkout backend-advanced-module3-exam
 ```
 
 ### **Follow Project-Specific Instructions**
@@ -214,14 +265,22 @@ docker-compose up --build
 
 ## 📚 Learning Path
 
-If you're exploring these projects to learn, here's the current available project:
+If you're exploring these projects to learn, here's a recommended progression:
 
 ```
-1. Business School System
-   └─→ Learn: MVC, Service Layer, Docker Basics
+1. Backend Advanced Exam (Start Here)
+   └─→ Learn: MVC Fundamentals
+   └─→ Learn: Web API Basics
+   └─→ Learn: Entity Framework Core
+   └─→ Learn: Service Layer Pattern
+   └─→ Learn: Error Debugging Skills
+
+2. Business School System (Advanced)
+   └─→ Learn: Complex Business Logic
    └─→ Learn: Gamification Systems
    └─→ Learn: Recommendation Algorithms
    └─→ Learn: Role-Based Authorization
+   └─→ Learn: Docker Deployment
 ```
 
 *As more projects are added, a comprehensive learning path will be developed.*
@@ -377,6 +436,7 @@ Special thanks to:
 Currently planning and developing:
 
 - 🤟 **Real-Time Sign Language Translator:** AI-Powered Computer Vision System for Sign Language Recognition
+- 🎮 **Additional Full-Stack Applications:** More enterprise-grade systems showcasing different architectural patterns
 
 *Projects will be added to this repository as they are completed throughout the Master's program.*
 
@@ -384,7 +444,7 @@ Currently planning and developing:
 
 ## 📝 Final Note
 
-This repository is **actively under development** as part of my Master's program journey. Currently featuring a comprehensive Business School Management System, with more enterprise-grade projects planned and in progress.
+This repository is **actively under development** as part of my Master's program journey. Currently featuring two comprehensive enterprise-grade projects, with more planned and in progress.
 
 Each project showcases not just technical skills, but also:
 
