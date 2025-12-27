@@ -17,30 +17,30 @@ Complete REST API built with Node.js, TypeScript, and MongoDB that enables event
 ## 🏗️ System Architecture
 
 ```
-          ┌─────────────┐
-          │   Client        │
-          │   (User)        │
-          └─────┬───────┘
-                │
-                ▼
-         ┌──────────────┐
-         │   REST API       │
-         │  (Express)       │
-         └──────┬───────┘
-        ┌──────┴───────┐
-        │                  │
-        ▼                  ▼
-┌─────────────┐   ┌─────────────┐
-│   MongoDB       │   │ Background      │
-│  (Replica)      │   │   Jobs          │
-└─────────────┘   └─────────────┘
-        ▲
-        │
-        ▼
-  ┌─────────────┐
-  │ WebSocket       │
-  │ (Socket.io)     │
-  └─────────────┘
+flowchart LR
+    %% Clientes
+    A[Client<br>(Browser / App)] -->|HTTP / REST| B[REST API<br>(Express)]
+
+    %% Backend
+    B --> C[MongoDB<br>(Replica Set)]
+    B --> D[Background Jobs<br>(Order expiration, notifications)]
+    B --> E[WebSocket<br>(Socket.io)]
+
+    %% Flujo de WebSocket
+    E -->|Real-time updates| A
+
+    %% Estilo opcional
+    classDef db fill:#f9f,stroke:#333,stroke-width:1px;
+    classDef api fill:#bbf,stroke:#333,stroke-width:1px;
+    classDef client fill:#bfb,stroke:#333,stroke-width:1px;
+    classDef jobs fill:#ffb,stroke:#333,stroke-width:1px;
+    classDef ws fill:#fbf,stroke:#333,stroke-width:1px;
+
+    class A client;
+    class B api;
+    class C db;
+    class D jobs;
+    class E ws;
 
 ```
 
