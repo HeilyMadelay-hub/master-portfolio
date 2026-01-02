@@ -418,9 +418,9 @@ Authorization: Bearer your_token_here
 
 ### Production environment variables
 ```env
-NODE_ENV=production
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/ticketing
-JWT_SECRET=super-secure-random-key-64-characters-minimum
+NODE_ENV=
+MONGODB_URI=
+JWT_SECRET=
 PORT=3000
 ```
 
