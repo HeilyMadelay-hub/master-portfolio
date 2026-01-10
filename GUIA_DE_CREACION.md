@@ -535,4 +535,606 @@ New-Item -ItemType File -Path "README.md" -Force
 4. **Implementa modelos** en `models/`
 5. **Empieza por un servicio simple** en `services/`
 
+
 ¿Dónde meter el Docker en una API pequeña/mediana/compleja?
+
+# 🐳 Docker por Tipo de API: La Guía Definitiva
+
+Como senior, te voy a dar **la respuesta práctica** basada en experiencia real, no teoría.
+
+---
+
+## 🎯 Respuesta Directa
+
+| Tipo de API | ¿Docker desde día 1? | ¿Qué dockerizar? | Momento de creación |
+|-------------|---------------------|------------------|---------------------|
+| **API Pequeña** | 🟡 **Opcional** | Solo MongoDB/PostgreSQL | Día 3-5 (cuando funcione local) |
+| **API Mediana** | ✅ **Recomendado** | DB + API (desarrollo) | Día 1-2 (con setup inicial) |
+| **API Compleja** | 🔴 **OBLIGATORIO** | DB + API + Redis/RabbitMQ | Día 0 (antes de escribir código) |
+
+---
+
+## 📊 Análisis Detallado por Tipo
+
+### 🟢 **API PEQUEÑA** (CRUD básico, < 10 endpoints)
+
+#### **Estructura sin Docker:**
+```
+project-name/
+├── src/
+│   ├── config/
+│   ├── models/
+│   ├── services/
+│   ├── controllers/
+│   ├── routes/
+│   ├── middlewares/
+│   ├── utils/
+│   ├── types/
+│   ├── errors/
+│   ├── app.ts
+│   └── main.ts
+├── .env.example
+├── tsconfig.json
+└── package.json
+```
+
+#### **¿Cuándo añadir Docker?**
+
+**Opción A: Sin Docker (desarrollo local)**
+```bash
+# Día 1
+npm install
+npm run dev
+
+# Conexión a MongoDB Atlas (cloud) o instalación local
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/mydb
+```
+
+**✅ Ventajas:**
+- Setup en 5 minutos
+- No necesitas entender Docker
+- Ideal para prototipos rápidos
+
+**❌ Desventajas:**
+- Cada dev instala MongoDB diferente
+- "En mi máquina funciona" 🤷
+
+---
+
+**Opción B: Docker solo para base de datos (recomendado)**
+
+```
+project-name/
+├── src/
+├── docker-compose.yml          # ⚠️ SOLO BD
+├── .dockerignore
+└── package.json
+```
+
+**docker-compose.yml** (versión mínima):
+```yaml
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+
+volumes:
+  mongo-data:
+```
+
+**Workflow:**
+```bash
+# Una vez
+docker-compose up -d mongodb
+
+# Desarrollar normalmente
+npm run dev
+```
+
+**.env:**
+```env
+MONGODB_URI=mongodb://admin:admin123@localhost:27017/mydb?authSource=admin
+```
+
+**✅ Cuándo usar esta opción:**
+- Equipo de 2-5 personas
+- No necesitas transacciones
+- Quieres consistencia de BD sin complicar
+
+---
+
+### 🟡 **API MEDIANA** (10-30 endpoints, lógica de negocio)
+
+#### **Estructura recomendada:**
+```
+project-name/
+├── src/
+│   ├── config/
+│   ├── models/
+│   ├── repositories/        # ⚠️ NUEVO
+│   ├── services/
+│   ├── controllers/
+│   ├── routes/
+│   ├── middlewares/
+│   ├── validators/          # ⚠️ NUEVO
+│   ├── utils/
+│   ├── types/
+│   ├── constants/           # ⚠️ NUEVO
+│   ├── errors/
+│   ├── app.ts
+│   └── main.ts
+├── docker/                  # ⚠️ NUEVO
+│   ├── development/
+│   │   └── Dockerfile.dev
+│   └── mongodb/
+│       └── init-replica-set.sh
+├── docker-compose.yml       # ⚠️ DB + API
+├── .dockerignore
+├── tsconfig.json
+└── package.json
+```
+
+#### **¿Cuándo añadir Docker?**
+
+**DÍA 1-2:** Setup completo con Docker
+
+**docker-compose.yml:**
+```yaml
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    command: ["--replSet", "rs0", "--bind_ip_all"]  # ⚠️ Replica set opcional
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+
+  api:                        # ⚠️ NUEVO
+    build:
+      context: .
+      dockerfile: docker/development/Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src        # Hot reload
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/mydb?authSource=admin
+      JWT_SECRET: dev-secret
+      PORT: 3000
+    depends_on:
+      - mongodb
+    command: npm run dev
+
+volumes:
+  mongo-data:
+```
+
+**docker/development/Dockerfile.dev:**
+```dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
+```
+
+**Workflow:**
+```bash
+# Cada día
+docker-compose up -d
+
+# Los cambios en src/ se reflejan automáticamente
+code src/services/userService.ts
+
+# Ver logs
+docker-compose logs -f api
+
+# Apagar
+docker-compose down
+```
+
+**✅ Cuándo usar Docker completo:**
+- Equipo de 3+ personas
+- Necesitas consistencia total
+- API con lógica compleja de negocio
+- Preparación para producción
+
+---
+
+### 🔴 **API COMPLEJA** (Tiempo real, concurrencia, background jobs)
+
+#### **Estructura obligatoria:**
+```
+event-ticketing-api/
+├── src/
+│   ├── config/
+│   │   ├── database.ts
+│   │   ├── websocket.ts     # ⚠️ Socket.io
+│   │   └── redis.ts         # ⚠️ NUEVO (opcional)
+│   ├── models/
+│   ├── repositories/        # ⚠️ Operaciones atómicas
+│   ├── services/
+│   ├── controllers/
+│   ├── routes/
+│   ├── middlewares/
+│   ├── validators/
+│   ├── jobs/                # ⚠️ Background tasks
+│   ├── websocket/           # ⚠️ Real-time handlers
+│   ├── utils/
+│   ├── types/
+│   ├── constants/
+│   ├── errors/
+│   ├── app.ts
+│   └── main.ts
+├── docker/                  # ⚠️ CRÍTICO
+│   ├── development/
+│   │   └── Dockerfile.dev
+│   ├── production/
+│   │   └── Dockerfile       # Multi-stage
+│   ├── mongodb/
+│   │   └── init-replica-set.sh
+│   └── nginx/               # Opcional (reverse proxy)
+│       └── nginx.conf
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── docker-compose.yml       # ⚠️ Desarrollo
+├── docker-compose.prod.yml  # ⚠️ Producción
+├── docker-compose.test.yml  # ⚠️ Tests
+├── .dockerignore
+├── tsconfig.json
+└── package.json
+```
+
+#### **Docker desde DÍA 0 (OBLIGATORIO)**
+
+**¿Por qué?**
+
+```
+❌ Sin Docker:
+- MongoDB sin replica set → Transacciones fallan
+- No puedes testear concurrencia
+- Redis/RabbitMQ manual en cada máquina
+- WebSockets: diferentes puertos/configs
+
+✅ Con Docker desde día 0:
+- Replica set automático
+- Tests de concurrencia desde día 1
+- Redis + MongoDB juntos
+- Todo el equipo: entorno idéntico
+```
+
+---
+
+**docker-compose.yml** (completo):
+```yaml
+version: '3.8'
+
+services:
+  # MongoDB con Replica Set (OBLIGATORIO para transacciones)
+  mongodb:
+    image: mongo:7.0
+    container_name: ticketing-mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./docker/mongodb/init-replica-set.sh:/docker-entrypoint-initdb.d/init-replica-set.sh
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (opcional, para caché/sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: ticketing-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  # API Node.js
+  api:
+    build:
+      context: .
+      dockerfile: docker/development/Dockerfile.dev
+    container_name: ticketing-api
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Debugging
+    volumes:
+      - ./src:/app/src
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: mongodb://admin:admin123@mongodb:27017/ticketing?authSource=admin&replicaSet=rs0
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-secret
+      PORT: 3000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: npm run dev
+
+volumes:
+  mongo-data:
+  redis-data:
+```
+
+**docker/mongodb/init-replica-set.sh:**
+```bash
+#!/bin/bash
+sleep 10
+
+mongosh --host localhost:27017 -u admin -p admin123 --authenticationDatabase admin <<EOF
+rs.initiate({
+  _id: "rs0",
+  members: [{ _id: 0, host: "mongodb:27017" }]
+});
+EOF
+
+echo "✅ Replica set inicializado"
+```
+
+**docker/development/Dockerfile.dev:**
+```dockerfile
+FROM node:20-alpine
+
+RUN apk add --no-cache git
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+
+EXPOSE 3000 9229
+
+CMD ["npm", "run", "dev"]
+```
+
+**docker/production/Dockerfile:**
+```dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY tsconfig.json ./
+COPY src ./src
+
+RUN npm run build
+
+# Stage 2: Runtime
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY package*.json ./
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+USER nodejs
+
+EXPOSE 3000
+
+CMD ["node", "dist/main.js"]
+```
+
+---
+
+## 🎯 Matriz de Decisión: ¿Qué dockerizar y cuándo?
+
+### **Criterios de decisión:**
+
+| Pregunta | Respuesta | Acción |
+|----------|-----------|--------|
+| ¿Necesitas transacciones MongoDB? | ✅ Sí | Docker desde día 0 (replica set) |
+| ¿Tienes background jobs? | ✅ Sí | Docker desde día 1 |
+| ¿Usas WebSockets? | ✅ Sí | Docker desde día 1 |
+| ¿Equipo de 3+ personas? | ✅ Sí | Docker desde día 1-2 |
+| ¿Solo CRUD básico? | ❌ No | Docker opcional (solo BD) |
+| ¿Prototipo temporal? | ❌ No | Sin Docker |
+
+---
+
+## 📅 Timeline de Implementación
+
+### **API PEQUEÑA:**
+```
+Día 1: Setup proyecto + npm install
+Día 2-5: Desarrollar en local
+Día 6: (Opcional) Añadir docker-compose.yml solo para BD
+```
+
+### **API MEDIANA:**
+```
+Día 1: Setup proyecto + docker-compose.yml (BD)
+Día 2: Añadir servicio API a Docker
+Día 3+: Desarrollar con docker-compose up
+```
+
+### **API COMPLEJA:**
+```
+Día 0: Setup Docker COMPLETO antes de código
+  - docker-compose.yml (MongoDB + Redis)
+  - Dockerfile.dev
+  - init-replica-set.sh
+Día 1: Probar replica set funciona
+Día 2+: Desarrollar con docker-compose up
+```
+
+---
+
+## 🚀 Scripts de PowerShell para Cada Caso
+
+### **Script 1: API Pequeña (sin Docker)**
+```powershell
+# Estructura base
+"config", "models", "services", "controllers", "routes", 
+"middlewares", "utils", "types", "errors" |
+ForEach-Object { New-Item -ItemType Directory -Path "src\$_" -Force }
+
+New-Item -ItemType File -Path "src\app.ts" -Force
+New-Item -ItemType File -Path "src\main.ts" -Force
+New-Item -ItemType File -Path ".env.example" -Force
+New-Item -ItemType File -Path "tsconfig.json" -Force
+New-Item -ItemType File -Path ".gitignore" -Force
+
+Write-Host "✅ API pequeña creada (sin Docker)" -ForegroundColor Green
+```
+
+### **Script 2: API Mediana (Docker básico)**
+```powershell
+# Estructura base
+"config", "models", "repositories", "services", "controllers", 
+"routes", "middlewares", "validators", "utils", "types", 
+"constants", "errors" |
+ForEach-Object { New-Item -ItemType Directory -Path "src\$_" -Force }
+
+# Docker
+New-Item -ItemType Directory -Path "docker\development" -Force
+New-Item -ItemType File -Path "docker\development\Dockerfile.dev" -Force
+New-Item -ItemType File -Path "docker-compose.yml" -Force
+New-Item -ItemType File -Path ".dockerignore" -Force
+
+# Archivos principales
+New-Item -ItemType File -Path "src\app.ts" -Force
+New-Item -ItemType File -Path "src\main.ts" -Force
+New-Item -ItemType File -Path ".env.example" -Force
+New-Item -ItemType File -Path "tsconfig.json" -Force
+New-Item -ItemType File -Path ".gitignore" -Force
+
+Write-Host "✅ API mediana creada (Docker básico)" -ForegroundColor Green
+```
+
+### **Script 3: API Compleja (Docker completo)**
+```powershell
+# Estructura completa
+"config", "models", "repositories", "services", "controllers", 
+"routes", "middlewares", "validators", "jobs", "websocket",
+"utils", "types", "constants", "errors" |
+ForEach-Object { New-Item -ItemType Directory -Path "src\$_" -Force }
+
+# Docker completo
+New-Item -ItemType Directory -Path "docker\development" -Force
+New-Item -ItemType Directory -Path "docker\production" -Force
+New-Item -ItemType Directory -Path "docker\mongodb" -Force
+
+New-Item -ItemType File -Path "docker\development\Dockerfile.dev" -Force
+New-Item -ItemType File -Path "docker\production\Dockerfile" -Force
+New-Item -ItemType File -Path "docker\mongodb\init-replica-set.sh" -Force
+
+New-Item -ItemType File -Path "docker-compose.yml" -Force
+New-Item -ItemType File -Path "docker-compose.prod.yml" -Force
+New-Item -ItemType File -Path "docker-compose.test.yml" -Force
+New-Item -ItemType File -Path ".dockerignore" -Force
+
+# Tests
+New-Item -ItemType Directory -Path "tests\unit" -Force
+New-Item -ItemType Directory -Path "tests\integration" -Force
+
+# Archivos principales
+New-Item -ItemType File -Path "src\app.ts" -Force
+New-Item -ItemType File -Path "src\main.ts" -Force
+New-Item -ItemType File -Path ".env.example" -Force
+New-Item -ItemType File -Path "tsconfig.json" -Force
+New-Item -ItemType File -Path ".gitignore" -Force
+New-Item -ItemType File -Path "README.md" -Force
+
+Write-Host "✅ API compleja creada (Docker completo)" -ForegroundColor Green
+```
+
+---
+
+## ✅ Checklist por Tipo de API
+
+### **API PEQUEÑA:**
+- [ ] `docker-compose.yml` (solo si equipo > 2 personas)
+- [ ] Solo MongoDB dockerizado
+- [ ] API corre en local con `npm run dev`
+
+### **API MEDIANA:**
+- [ ] `docker-compose.yml` (MongoDB + API)
+- [ ] `docker/development/Dockerfile.dev`
+- [ ] `.dockerignore`
+- [ ] Hot reload funcionando
+
+### **API COMPLEJA:**
+- [ ] `docker-compose.yml` (MongoDB + Redis + API)
+- [ ] `docker/development/Dockerfile.dev`
+- [ ] `docker/production/Dockerfile` (multi-stage)
+- [ ] `docker/mongodb/init-replica-set.sh`
+- [ ] `docker-compose.test.yml`
+- [ ] `.dockerignore`
+- [ ] Health checks configurados
+
+---
+
+## 🎓 Resumen Ejecutivo
+
+| Tipo de API | Docker | Ubicación | Cuándo crear |
+|-------------|--------|-----------|--------------|
+| **Pequeña** | 🟡 Opcional | Solo `docker-compose.yml` en raíz | Día 3-5 (si necesitas) |
+| **Mediana** | ✅ Recomendado | `docker/` + `docker-compose.yml` | Día 1-2 |
+| **Compleja** | 🔴 Obligatorio | `docker/` completo + múltiples compose | Día 0 |
+
+---
+
+## 💡 Regla de Oro
+
+> **"Docker no es por el tamaño del proyecto, es por la COMPLEJIDAD de la infraestructura"**
+
+**Dockeriza desde día 0 si necesitas:**
+- ✅ Replica set de MongoDB (transacciones)
+- ✅ Múltiples servicios (Redis, RabbitMQ)
+- ✅ Background jobs
+- ✅ WebSockets
+- ✅ Tests de concurrencia
+
+**Dockeriza después (o nunca) si:**
+- ❌ CRUD simple sin transacciones
+- ❌ Prototipo temporal
+- ❌ Equipo de 1 persona
+- ❌ MongoDB Atlas en la nube
+
+---
+
+**Respuesta directa a tu pregunta:**
+
+En tu caso específico (sistema de tickets con concurrencia y tiempo real) = **API COMPLEJA** → Docker va en **DÍA 0**, estructura completa con `docker/` y múltiples compose files.
