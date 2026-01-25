@@ -1,13 +1,5 @@
 # 🎓 Master's Program Portfolio
 
-**Advanced Software Engineering Projects & Technical Excellence**
-
-![Projects](https://img.shields.io/badge/Projects-3-success)
-![Technologies](https://img.shields.io/badge/Technologies-15+-blue)
-![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-
----
-
 ## 🚀 Featured Projects
 
 ### **🧏‍♂️ [Real-Time Sign Language Translator](https://github.com/HeilyMadelay-hub/Master-Proyects/tree/sign-language-translator)**
