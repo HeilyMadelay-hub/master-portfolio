@@ -33,7 +33,7 @@ env/
 .env
 *.h5
 *.pb
-models/
+
 node_modules/
 dist/
 build/
