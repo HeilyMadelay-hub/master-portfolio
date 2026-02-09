@@ -37,3 +37,18 @@ models/
 node_modules/
 dist/
 build/
+
+back/node_modules/
+front/node_modules/
+
+# Build outputs
+back/dist/
+front/dist/
+
+# VS Code
+.vs/
+.vscode/
+
+# Environment variables
+back/.env
+front/.env
