@@ -30,9 +30,9 @@ app.use("/api/loans", loanRoutes);
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../../front/dist')));
 
-// Ruta catch-all para SPA (debe ir al final)
-app.get('{*path}', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../front/dist/index.html'));
+// Ruta catch-all para SPA 
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../front/dist/index.html'));
 });
 
 const PORT = Number(process.env.PORT) || 4000;
