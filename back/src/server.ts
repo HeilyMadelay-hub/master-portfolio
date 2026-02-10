@@ -30,9 +30,13 @@ app.use("/api/loans", loanRoutes);
 // Servir archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../../front/dist')));
 
-// Ruta catch-all para SPA 
-app.get('/*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../front/dist/index.html'));
+// Middleware para SPA - captura todas las rutas que NO son API
+app.use((req, res, next) => {
+    // Si la ruta NO empieza con /api, sirve el index.html
+    if (!req.path.startsWith('/api')) {
+        return res.sendFile(path.join(__dirname, '../../front/dist/index.html'));
+    }
+    next();
 });
 
 const PORT = Number(process.env.PORT) || 4000;
@@ -57,4 +61,3 @@ const start = async () => {
 };
 
 start();
-
