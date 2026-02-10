@@ -31,7 +31,7 @@ app.use("/api/loans", loanRoutes);
 app.use(express.static(path.join(__dirname, '../../front/dist')));
 
 // Ruta catch-all para SPA (debe ir al final)
-app.get('*', (req, res) => {
+app.get('{*path}', (req, res) => {
   res.sendFile(path.join(__dirname, '../../front/dist/index.html'));
 });
 
