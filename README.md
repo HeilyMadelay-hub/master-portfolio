@@ -7,10 +7,8 @@
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-heilymajtan-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/heilymajtan/)
 [![Email](https://img.shields.io/badge/Email-heilymadelayajtan%40icloud.com-EA4335?style=for-the-badge&logo=gmail)](mailto:heilymadelayajtan@icloud.com)
 
----
-
 **Expertise:** Scalable Backend · Real-Time Systems · Full-Stack Development · Applied AI/ML  
-**Tech Stack:** `React` · `TypeScript` · `Node.js` · `ASP.NET Core` · `Python` · `TensorFlow.js` · `SignalR` · `Docker` · `Azure` · `Render`
+**Tech Stack:** `React` · `TypeScript` · `Node.js` · `ASP.NET Core` · `Python` · `TensorFlow.js` · `MediaPipe` · `OpenCV` · `SignalR` · `WebSockets` · `Socket.io` · `Docker` · `Git` · `Azure` · `Render`
 
 </div>
 
@@ -46,16 +44,4 @@ Scalable ticketing backend with transactions & real-time notifications. `Node.js
 |---------|------|-------|
 | Business School Management System | [Link](https://github.com/HeilyMadelay-hub/master-portfolio/tree/business-school-aspnet-core-mvc-identity) | ASP.NET Core MVC · EF Core · SQL Server · Docker |
 | Backend Advanced Development | [Link](https://github.com/HeilyMadelay-hub/master-portfolio/tree/backend-advanced-module3-exam) | ASP.NET Core 8 · EF Core · SQL Server · Swagger |
-
----
-
-## 💻 Core Technologies
-
-`ASP.NET Core` · `Node.js` · `Python` · `React` · `TypeScript` · `JavaScript` · `TensorFlow.js` · `MediaPipe` · `OpenCV` · `SignalR` · `WebSockets` · `Socket.io` · `Docker` · `Git` · `Azure` · `Render`
-
----
-
-## 📬 Contact
-
-[GitHub](https://github.com/HeilyMadelay-hub) · [LinkedIn](https://www.linkedin.com/in/heilymajtan/) · [Email](mailto:heilymadelayajtan@icloud.com)
 
