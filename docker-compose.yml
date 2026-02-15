@@ -1,0 +1,13 @@
+version: '3.9'            # Define la versión de Docker Compose que estás usando. La 3.9 es compatible con las últimas características.
+
+services:                  # Comienza la sección donde se definen los contenedores (servicios) que se van a levantar.
+
+  backend:                 # Nombre del primer servicio, aquí tu backend.
+    build: ./backend       # Indica que Docker debe construir la imagen usando el Dockerfile que está dentro de la carpeta "backend".
+    ports:                 # Define el mapeo de puertos entre la máquina local y el contenedor.
+      - "8000:8000"        # El puerto 8000 del contenedor se expone en el puerto 8000 de tu máquina local. Así puedes acceder a FastAPI desde el navegador o frontend.
+
+  frontend:                # Nombre del segundo servicio, aquí tu frontend.
+    build: ./frontend      # Indica que Docker debe construir la imagen usando el Dockerfile dentro de la carpeta "frontend".
+    ports:                 # Mapeo de puertos para el frontend.
+      - "4173:4173"        # El puerto 4173 del contenedor se expone en el puerto 4173 de tu máquina local. Así puedes acceder a Vite/React desde el navegador.
