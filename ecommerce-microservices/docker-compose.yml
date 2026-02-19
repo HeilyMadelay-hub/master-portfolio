@@ -1,0 +1,42 @@
+services:
+  userservice:
+    container_name: userservice
+    build:
+      context: ./UserService
+      dockerfile: Dockerfile
+    ports:
+      - "5001:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  catalogservice:
+    container_name: catalogservice
+    build:
+      context: ./CatalogService
+      dockerfile: Dockerfile
+    ports:
+      - "5002:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  orderservice:
+    container_name: orderservice
+    build:
+      context: ./OrderService
+      dockerfile: Dockerfile
+    ports:
+      - "5003:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
